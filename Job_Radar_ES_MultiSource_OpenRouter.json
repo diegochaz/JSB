@@ -105,8 +105,9 @@
         0
       ],
       "notesInFlow": true,
-      "notes": "Requires INFOJOBS_CLIENT_ID and INFOJOBS_CLIENT_SECRET environment variables in n8n. InfoJobs API uses HTTP Basic authentication.",
-      "onError": "continueErrorOutput"
+      "notes": "Deshabilitado temporalmente: el alta de nuevas apps en developer.infojobs.net está cerrada ('Register a new App' -> 'currently unavailable'). Sin INFOJOBS_CLIENT_ID/SECRET este nodo lanzaría error 401 en cada ejecución y dispararía la alerta de fallo. Actívalo (clic derecho -> Activate, o selecciona y pulsa 'D') en cuanto consigas las credenciales de InfoJobs.",
+      "onError": "continueErrorOutput",
+      "disabled": true
     },
     {
       "parameters": {
