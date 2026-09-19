@@ -1,0 +1,1095 @@
+{
+  "name": "Job Radar ES — Multi-source + OpenRouter",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "n1",
+      "name": "Cada mañana",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn [{\n  json: {\n    profile: {\n      search_queries: [\n        \"Business Development\",\"Business Development Manager\",\"Business Development Executive\",\n        \"Expansion Manager\",\"Expansion\",\"Commercial Manager\",\"Commercial\",\n        \"Operations Manager\",\"Operations\",\"Category Manager\",\"Franchise Manager\",\n        \"Franchise Expansion\",\"Key Account Manager\",\"KAM\",\"Account Manager\",\n        \"Partnerships Manager\",\"Growth Manager\"\n      ],\n      locations: [\"Málaga\",\"Málaga provincia\",\"Andalucía\",\"España\",\"Spain\"],\n      remote_keywords: [\"remote\",\"remoto\",\"teletrabajo\",\"híbrido\",\"hybrid\"],\n      target_roles: [\n        \"Business Development\",\"Business Development Manager\",\"Expansion Manager\",\n        \"Commercial Manager\",\"Operations Manager\",\"Category Manager\",\n        \"Franchise Manager\",\"Key Account Manager\",\"Account Manager\",\n        \"Partnerships Manager\",\"Growth Manager\"\n      ],\n      transition_roles: [\n        \"Business Development Executive\",\"Expansion Executive\",\"Operations Specialist\",\n        \"Commercial Specialist\",\"Category Specialist\",\"Franchise Specialist\"\n      ],\n      keywords: [\n        \"business development\",\"expansion\",\"commercial\",\"operations\",\"category\",\n        \"franchise\",\"franchises\",\"franquicia\",\"key account\",\"kam\",\"account manager\",\n        \"partnerships\",\"growth\",\"sales strategy\",\"go-to-market\",\"market expansion\",\n        \"hospitality\",\"horeca\",\"retail\",\"multi-site\",\"negotiation\",\"negociación\",\n        \"operations\",\"operaciones\",\"process improvement\",\"automation\"\n      ],\n      hard_exclusions: [\n        \"senior\",\"lead\",\"director\",\"vp\",\"vice president\",\"head of\",\n        \"architect\",\"principal engineer\",\"staff engineer\",\"full-stack\",\n        \"frontend\",\"backend developer\",\"data scientist\",\"machine learning\",\n        \"deep learning\",\"solo presencial\"\n      ],\n      locations_allowed: [\"málaga\",\"malaga\",\"andalucía\",\"andalucia\",\"españa\",\"spain\"],\n      remote_allowed: true,\n      hybrid_allowed: true,\n      onsite_allowed: false,\n      minimum_salary_eur: 35000,\n      max_age_days: 7,\n      max_results_per_source_query: 20,\n      minimum_keyword_matches: 1\n    }\n  }\n}];\n"
+      },
+      "id": "n2",
+      "name": "Perfil profesional",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "jsCode": "\nreturn [{\n  json: {\n    profile: {\n      search_queries: [\n        \"Business Development Manager\",\"Expansion Manager\",\"Commercial Manager\",\n        \"Operations Manager\",\"Key Account Manager\",\"Franchise Manager\",\"Category Manager\"\n      ],\n      locations: [\n        \"Málaga, España\",\"Andalucía, España\",\"España\",\"Spain\",\"Andalusia, Spain\",\n        \"Europe (remote)\",\"Remoto - España\"\n      ],\n      remote_keywords: [\"remote\",\"remoto\",\"teletrabajo\",\"100% remoto\"],\n      hybrid_keywords: [\"hybrid\",\"híbrido\",\"hibrido\"],\n      target_roles: [\n        \"Business Development Manager\",\"Expansion Manager\",\"Commercial Manager\",\n        \"Operations Manager\",\"Category Manager\",\"Franchise Manager\",\"Key Account Manager\",\n        \"Partnerships Manager\",\"Growth Manager\"\n      ],\n      transition_roles: [\n        \"Business Development Director\",\"Head of Expansion\",\"Head of Business Development\",\n        \"Country Manager\",\"Regional Operations Manager\",\"Commercial Director\"\n      ],\n      keywords: [\n        \"business development\",\"expansion\",\"commercial strategy\",\"operations\",\"category management\",\n        \"franchise\",\"franchising\",\"franquicia\",\"key account management\",\"kam\",\"account manager\",\n        \"partnerships\",\"growth strategy\",\"sales strategy\",\"go-to-market\",\"market expansion\",\n        \"hospitality\",\"horeca\",\"retail\",\"multi-site\",\"negotiation\",\"negociación\",\n        \"process improvement\",\"p&l management\",\"stakeholder management\"\n      ],\n      hard_exclusions: [\n        \"vice president\",\"chief executive\",\"ceo\",\"cto\",\"cfo\",\"software engineer\",\n        \"backend developer\",\"frontend developer\",\"full-stack developer\",\"data scientist\",\n        \"machine learning engineer\",\"solutions architect\",\"principal engineer\",\"staff engineer\",\n        \"becario\",\"prácticas\",\"intern\",\"junior\"\n      ],\n      locations_allowed: [\n        \"malaga\",\"andalucia\",\"espana\",\"spain\",\"andalusia\",\"europe\",\"remote\",\"remoto\"\n      ],\n      remote_allowed: true,\n      hybrid_allowed: true,\n      onsite_allowed: true,\n      minimum_salary_eur: 35000,\n      max_age_days: 7,\n      max_results_per_source_query: 20,\n      minimum_keyword_matches: 2\n    }\n  }\n}];\n"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst p = $('Perfil profesional').first().json.profile;\nconst qs = p.search_queries.slice(0, 18);\nreturn qs.map(q => ({json: {\n  source: \"InfoJobs\",\n  query: q,\n  location: \"Málaga\",\n  profile: p\n}}));\n"
+      },
+      "id": "n3",
+      "name": "InfoJobs — generar consultas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.infojobs.net/api/9/offer",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{$json.query}}"
+            },
+            {
+              "name": "teleworking",
+              "value": "teleworking-possible"
+            },
+            {
+              "name": "maxResults",
+              "value": "={{$json.profile.max_results_per_source_query}}"
+            },
+            {
+              "name": "order",
+              "value": "updated-desc"
+            },
+            {
+              "name": "sinceDate",
+              "value": "_7_DAYS"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{'Basic ' + Buffer.from($env.INFOJOBS_CLIENT_ID + ':' + $env.INFOJOBS_CLIENT_SECRET).toString('base64')}}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "n4",
+      "name": "InfoJobs API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        0
+      ],
+      "notesInFlow": true,
+      "notes": "Requires INFOJOBS_CLIENT_ID and INFOJOBS_CLIENT_SECRET environment variables in n8n. InfoJobs API uses HTTP Basic authentication."
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst body=$json;\nconst arr=Array.isArray(body.offers)?body.offers:[];\nreturn arr.map(j=>({json:{\n source:\"InfoJobs\",\n id:j.id||j.offerCode||\"\",\n title:j.title||j.jobTitle||\"\",\n company:j.author?.name||j.company?.name||j.companyName||\"No indicada\",\n location:[j.city?.value,j.province?.value].filter(Boolean).join(\", \")||j.locationName||\"No indicada\",\n description:j.description||j.requirements||\"\",\n salary:(j.salaryMin||j.salaryMax)?`${j.salaryMin||\"\"}-${j.salaryMax||\"\"} ${j.salaryPeriod||\"EUR\"}`:\"\",\n published:j.creationDate||j.updated||\"\",\n url:j.link||j.url||\"\"\n}}));\n"
+      },
+      "id": "n5",
+      "name": "InfoJobs — normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst p = $('Perfil profesional').first().json.profile;\nconst qs = p.search_queries.slice(0, 18);\nreturn qs.map(q => ({json: {\n  source: \"Adzuna\",\n  query: q,\n  location: \"Málaga\",\n  profile: p\n}}));\n"
+      },
+      "id": "n6",
+      "name": "Adzuna — generar consultas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.adzuna.com/v1/api/jobs/es/search/1",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "app_id",
+              "value": "={{$env.ADZUNA_APP_ID}}"
+            },
+            {
+              "name": "app_key",
+              "value": "={{$env.ADZUNA_APP_KEY}}"
+            },
+            {
+              "name": "results_per_page",
+              "value": "={{$json.profile.max_results_per_source_query}}"
+            },
+            {
+              "name": "what",
+              "value": "={{$json.query}}"
+            },
+            {
+              "name": "max_days_old",
+              "value": "7"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "n7",
+      "name": "Adzuna API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        220
+      ],
+      "notesInFlow": true,
+      "notes": "Requires ADZUNA_APP_ID and ADZUNA_APP_KEY environment variables."
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst arr=Array.isArray($json.results)?$json.results:[];\nreturn arr.map(j=>({json:{\n source:\"Adzuna\",\n id:j.id||j.redirect_url||\"\",\n title:j.title||\"\",\n company:j.company?.display_name||\"No indicada\",\n location:j.location?.display_name||\"No indicada\",\n description:j.description||\"\",\n salary:(j.salary_min||j.salary_max)?`${j.salary_min||\"\"}-${j.salary_max||\"\"} ${j.salary_is_predicted?\"(estimado)\":\"\"}`:\"\",\n published:j.created||\"\",\n url:j.redirect_url||\"\"\n}}));\n"
+      },
+      "id": "n8",
+      "name": "Adzuna — normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst p = $('Perfil profesional').first().json.profile;\nconst qs = p.search_queries.slice(0, 18);\nreturn qs.map(q => ({json: {\n  source: \"Indeed\",\n  query: q,\n  location: \"Málaga\",\n  profile: p\n}}));\n"
+      },
+      "id": "n9",
+      "name": "Indeed — generar consultas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://es.indeed.com/jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{$json.query}}"
+            },
+            {
+              "name": "l",
+              "value": "Málaga"
+            },
+            {
+              "name": "fromage",
+              "value": "7"
+            },
+            {
+              "name": "sort",
+              "value": "date"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9,en;q=0.8"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "n10",
+      "name": "Indeed — buscar HTML",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        440
+      ],
+      "notesInFlow": true,
+      "notes": "Disabled by default: unofficial HTML scraping violates Indeed's ToS and breaks whenever their markup or anti-bot protection changes. Enable manually only if you accept that risk; prefer the InfoJobs/Adzuna/Arbeitnow/Himalayas/Jobicy/Remotive APIs.",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "titles",
+              "cssSelector": "a.jcs-JobTitle, a[data-jk]",
+              "returnArray": true
+            },
+            {
+              "key": "companies",
+              "cssSelector": "[data-testid='company-name'], span.companyName",
+              "returnArray": true
+            },
+            {
+              "key": "locations",
+              "cssSelector": "[data-testid='text-location'], div.companyLocation",
+              "returnArray": true
+            },
+            {
+              "key": "links",
+              "cssSelector": "a.jcs-JobTitle, a[data-jk]",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {
+          "trimValues": true,
+          "cleanUpText": true
+        }
+      },
+      "id": "n11",
+      "name": "Indeed — extraer",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        980,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst x=$json, t=Array.isArray(x.titles)?x.titles:[], c=Array.isArray(x.companies)?x.companies:[], l=Array.isArray(x.locations)?x.locations:[], u=Array.isArray(x.links)?x.links:[];\nreturn t.map((title,i)=>{let url=u[i]||\"\"; if(url.startsWith(\"/\")) url=\"https://es.indeed.com\"+url; return {json:{\n source:\"Indeed\", id:url||`${c[i]||\"\"}|${title}|${l[i]||\"\"}`, title, company:c[i]||\"No indicada\",\n location:l[i]||\"No indicada\", description:\"\", salary:\"\", published:\"\", url\n}}});\n"
+      },
+      "id": "n12",
+      "name": "Indeed — normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.arbeitnow.com/api/job-board-api",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "n13",
+      "name": "Arbeitnow API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst a=Array.isArray($json.data)?$json.data:[];\nreturn a.map(j=>({json:{source:\"Arbeitnow\",id:j.slug||j.url||\"\",title:j.title||\"\",company:j.company_name||\"No indicada\",\nlocation:j.location||(j.remote?\"Remote\":\"No indicada\"),description:j.description||\"\",salary:j.salary||\"\",published:j.created_at||\"\",url:j.url||\"\"}}));\n"
+      },
+      "id": "n14",
+      "name": "Arbeitnow — normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst p = $('Perfil profesional').first().json.profile;\nconst qs = p.search_queries.slice(0, 18);\nreturn qs.map(q => ({json: {\n  source: \"Himalayas\",\n  query: q,\n  location: \"Málaga\",\n  profile: p\n}}));\n"
+      },
+      "id": "n15",
+      "name": "Himalayas — generar consultas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://himalayas.app/jobs/api/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{$json.query}}"
+            },
+            {
+              "name": "country",
+              "value": "ES"
+            },
+            {
+              "name": "worldwide",
+              "value": "true"
+            },
+            {
+              "name": "employment_type",
+              "value": "Full Time"
+            },
+            {
+              "name": "sort",
+              "value": "recent"
+            },
+            {
+              "name": "page",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "n16",
+      "name": "Himalayas API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst a=Array.isArray($json.jobs)?$json.jobs:[];\nreturn a.map(j=>({json:{source:\"Himalayas\",id:j.guid||j.applicationLink||\"\",title:j.title||\"\",company:j.companyName||\"No indicada\",\nlocation:Array.isArray(j.locationRestrictions)&&j.locationRestrictions.length?j.locationRestrictions.join(\", \"):\"Remote\",\ndescription:j.description||j.excerpt||\"\",salary:(j.minSalary||j.maxSalary)?`${j.currency||\"\"} ${j.minSalary||\"?\"}-${j.maxSalary||\"?\"} ${j.salaryPeriod||\"annual\"}`:\"\",\npublished:j.pubDate||\"\",url:j.applicationLink||j.guid||\"\",attribution:\"Source: Himalayas\"}}));\n"
+      },
+      "id": "n17",
+      "name": "Himalayas — normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://jobicy.com/api/v2/remote-jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "count",
+              "value": "200"
+            },
+            {
+              "name": "geo",
+              "value": "spain"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "n18",
+      "name": "Jobicy API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst a=Array.isArray($json.jobs)?$json.jobs:[];\nreturn a.map(j=>({json:{source:\"Jobicy\",id:j.id||j.url||\"\",title:j.jobTitle||j.title||\"\",company:j.companyName||j.company||\"No indicada\",\nlocation:j.jobGeo||j.location||\"Remote\",description:j.jobDescription||j.description||\"\",salary:j.annualSalaryMin||j.annualSalaryMax?`${j.annualSalaryMin||\"\"}-${j.annualSalaryMax||\"\"} ${j.salaryCurrency||\"\"}`:\"\",\npublished:j.pubDate||j.datePosted||\"\",url:j.url||\"\",attribution:\"Source: Jobicy\"}}));\n"
+      },
+      "id": "n19",
+      "name": "Jobicy — normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://remotive.com/api/remote-jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "n20",
+      "name": "Remotive API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        980,
+        1120
+      ],
+      "notesInFlow": true,
+      "notes": "Public API data is delayed by 24h and Remotive requires attribution/link-back. This workflow keeps the source and URL in every notification."
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst a=Array.isArray($json.jobs)?$json.jobs:[];\nreturn a.map(j=>({json:{source:\"Remotive\",id:j.id||j.url||\"\",title:j.title||\"\",company:j.company_name||\"No indicada\",\nlocation:Array.isArray(j.candidate_required_location)?j.candidate_required_location.join(\", \"):\"Remote\",\ndescription:j.description||\"\",salary:j.salary||\"\",published:j.publication_date||\"\",url:j.url||\"\",attribution:\"Source: Remotive\"}}));\n"
+      },
+      "id": "n21",
+      "name": "Remotive — normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "n22",
+      "name": "Unir fuentes",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1460,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst p=$('Perfil profesional').first().json.profile;\nconst norm=s=>String(s||\"\").normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g,\"\").toLowerCase();\nconst hard=(p.hard_exclusions||[]).map(norm);\nconst keys=(p.keywords||[]).map(norm);\nconst roles=[...(p.target_roles||[]),...(p.transition_roles||[])].map(norm);\nconst allowed=(p.locations_allowed||[]).map(norm);\nconst now=Date.now(), maxAge=(p.max_age_days||7)*86400000;\n\nfunction dateMs(v){ if(!v)return null; if(typeof v===\"number\"){return v<1e12?v*1000:v;} const t=Date.parse(v); return Number.isNaN(t)?null:t; }\nfunction remoteText(t){return /\\bremote\\b|\\bremoto\\b|\\bteletrabajo\\b|\\bhybrid\\b|\\bhibrido\\b/.test(t);}\nfunction eurSalary(s){\n  const m=String(s||\"\").match(/(?:€|EUR)\\s*([\\d.,]+)/i);\n  return m?Number(m[1].replace(/\\./g,\"\").replace(\",\", \".\")):null;\n}\n\nconst out=[];\nfor(const it of $input.all()){\n const j=it.json, title=String(j.title||\"\").trim();\n if(!title) continue;\n const text=norm([title,j.company,j.location,j.description].join(\" \"));\n if(hard.some(x=>x&&text.includes(x))) continue;\n\n const titleRoles=roles.filter(x=>x&&norm(title).includes(x));\n const matches=[...new Set(keys.filter(x=>x&&text.includes(x)).concat(titleRoles))];\n const loc=norm(j.location);\n const remote=remoteText(text);\n const locOk=allowed.some(x=>x&&loc.includes(x)) || remote;\n\n if(!locOk && loc && loc!==\"no indicada\" && loc!==\"remote\") continue;\n\n const dt=dateMs(j.published);\n if(dt && now-dt>maxAge) continue;\n\n const salaryNum=eurSalary(j.salary);\n if(salaryNum && salaryNum < p.minimum_salary_eur) continue;\n\n const canonical=String(j.url||\"\").trim();\n const id=j.id || canonical || `${j.source}|${j.company}|${title}|${j.location}`;\n out.push({json:{\n   ...j,id,title,company:j.company||\"No indicada\",location:j.location||\"No indicada\",\n   salary:j.salary||\"No indicado\",published:j.published||\"No indicada\",\n   description:String(j.description||\"\").replace(/<[^>]+>/g,\" \").replace(/\\s+/g,\" \").trim(),\n   url:canonical,matches,match_count:matches.length,remote\n }});\n}\nreturn out.sort((a,b)=>b.json.match_count-a.json.match_count);\n"
+      },
+      "id": "n23",
+      "name": "Filtrar y normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        560
+      ],
+      "jsCode": "\nconst p=$('Perfil profesional').first().json.profile;\nconst norm=s=>String(s||\"\").normalize(\"NFD\").replace(/[̀-ͯ]/g,\"\").toLowerCase();\nconst hard=(p.hard_exclusions||[]).map(norm);\nconst keys=(p.keywords||[]).map(norm);\nconst roles=[...(p.target_roles||[]),...(p.transition_roles||[])].map(norm);\nconst allowed=(p.locations_allowed||[]).map(norm);\nconst now=Date.now(), maxAge=(p.max_age_days||7)*86400000;\n\nfunction dateMs(v){ if(!v)return null; if(typeof v===\"number\"){return v<1e12?v*1000:v;} const t=Date.parse(v); return Number.isNaN(t)?null:t; }\nfunction isHybridText(t){return /\\bhybrid\\b|\\bh[ií]brido\\b/.test(t);}\nfunction isRemoteText(t){return (/\\bremote\\b|\\bremoto\\b|\\bteletrabajo\\b/.test(t)) && !isHybridText(t);}\nfunction eurSalary(s){\n  const m=String(s||\"\").match(/(?:€|EUR)\\s*([\\d.,]+)/i);\n  return m?Number(m[1].replace(/\\./g,\"\").replace(\",\", \".\")):null;\n}\n\nconst out=[];\nfor(const it of $input.all()){\n const j=it.json, title=String(j.title||\"\").trim();\n if(!title) continue;\n const text=norm([title,j.company,j.location,j.description].join(\" \"));\n if(hard.some(x=>x&&text.includes(x))) continue;\n\n const titleRoles=roles.filter(x=>x&&norm(title).includes(x));\n const matches=[...new Set(keys.filter(x=>x&&text.includes(x)).concat(titleRoles))];\n if(matches.length < (p.minimum_keyword_matches||1)) continue;\n\n const loc=norm(j.location);\n const hybrid=isHybridText(text);\n const remote=isRemoteText(text);\n const work_mode = remote ? \"remote\" : (hybrid ? \"hybrid\" : \"onsite\");\n\n if(work_mode===\"remote\" && !p.remote_allowed) continue;\n if(work_mode===\"hybrid\" && !p.hybrid_allowed) continue;\n if(work_mode===\"onsite\" && !p.onsite_allowed) continue;\n\n const locOk=allowed.some(x=>x&&loc.includes(x)) || remote || hybrid;\n if(!locOk && loc && loc!==\"no indicada\") continue;\n\n const dt=dateMs(j.published);\n if(dt && now-dt>maxAge) continue;\n\n const salaryNum=eurSalary(j.salary);\n if(salaryNum && p.minimum_salary_eur && salaryNum < p.minimum_salary_eur) continue;\n\n const canonical=String(j.url||\"\").trim();\n const id=j.id || canonical || `${j.source}|${j.company}|${title}|${j.location}`;\n out.push({json:{\n   ...j,id,title,company:j.company||\"No indicada\",location:j.location||\"No indicada\",\n   salary:j.salary||\"No indicado\",published:j.published||\"No indicada\",\n   description:String(j.description||\"\").replace(/<[^>]+>/g,\" \").replace(/\\s+/g,\" \").trim(),\n   url:canonical,matches,match_count:matches.length,remote,hybrid,work_mode\n }});\n}\nreturn out.sort((a,b)=>b.json.match_count-a.json.match_count);\n"
+    },
+    {
+      "parameters": {
+        "operation": "removeItemsSeenInPreviousExecutions",
+        "dedupeValue": "={{$json.id}}"
+      },
+      "id": "n24",
+      "name": "Solo ofertas nuevas",
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1940,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "method": "POST",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: $env.OPENROUTER_MODEL || \"openrouter/free\",\n  response_format: { type: \"json_object\" },\n  messages: [\n    { role: \"system\", content: \"Eres un evaluador de ofertas de empleo. Responde SOLO JSON valido, sin texto adicional.\" },\n    { role: \"user\", content: `Evalua esta oferta frente al perfil profesional. Devuelve SOLO JSON valido con:\n{\"match\":0-100,\"role_fit\":0-100,\"location_fit\":0-100,\"salary_fit\":0-100,\"seniority_fit\":0-100,\"remote_fit\":0-100,\"apply\":true|false,\"reason\":\"maximo 300 caracteres\"}.\nPerfil: ${JSON.stringify($('Perfil profesional').first().json.profile)}\nOferta: ${JSON.stringify({title:$json.title,company:$json.company,location:$json.location,salary:$json.salary,work_mode:$json.work_mode,description:$json.description,url:$json.url})}` }\n  ]\n}) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{'Bearer ' + $env.OPENROUTER_API_KEY}}"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "={{$env.OPENROUTER_SITE_URL || 'https://n8n.local'}}"
+            },
+            {
+              "name": "X-Title",
+              "value": "Job Radar ES"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "n25",
+      "name": "OpenRouter — valorar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2180,
+        560
+      ],
+      "notesInFlow": true,
+      "notes": "Requires OPENROUTER_API_KEY environment variable (free account at openrouter.ai). Uses the 'openrouter/free' auto-router, which picks a $0 model that supports JSON structured output — no need to hardcode a specific free model that may be retired. Optionally set OPENROUTER_MODEL to pin a specific free model (must end in ':free')."
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst raw=$json.response||\"\";\nlet s={};\ntry{s=typeof raw===\"string\"?JSON.parse(raw):raw}catch(e){s={match:0,apply:false,reason:\"Qwen no devolvió JSON válido\"}}\nconst base=$('Solo ofertas nuevas').item.json;\nreturn [{json:{...base,score:Number(s.match||0),role_fit:Number(s.role_fit||0),location_fit:Number(s.location_fit||0),salary_fit:Number(s.salary_fit||0),seniority_fit:Number(s.seniority_fit||0),remote_fit:Number(s.remote_fit||0),apply:Boolean(s.apply),reason:String(s.reason||\"\")}}];\n"
+      },
+      "id": "n26",
+      "name": "Parsear valoración",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2420,
+        560
+      ],
+      "jsCode": "\nconst raw=$json.choices?.[0]?.message?.content||\"\";\nlet s={};\ntry{s=typeof raw===\"string\"?JSON.parse(raw):raw}catch(e){s={match:0,apply:false,reason:\"OpenRouter no devolvió JSON válido\"}}\nconst base=$('Solo ofertas nuevas').item.json;\nreturn [{json:{...base,score:Number(s.match||0),role_fit:Number(s.role_fit||0),location_fit:Number(s.location_fit||0),salary_fit:Number(s.salary_fit||0),seniority_fit:Number(s.seniority_fit||0),remote_fit:Number(s.remote_fit||0),apply:Boolean(s.apply),reason:String(s.reason||\"\")}}];\n"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{$json.score}}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "n27",
+      "name": "Match ≥ 70",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2660,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_CHAT_ID}}",
+        "text": "={{`${ {remote:'🏠 Remoto',hybrid:'🔀 Híbrido',onsite:'🏢 Presencial'}[$json.work_mode] || '' } \\n\\n💼 <b>${$json.title}</b>\\n\\n🏢 <b>${$json.company}</b>\\n📍 ${$json.location}\\n💰 ${$json.salary}\\n📅 ${$json.published}\\n🌐 ${$json.source}\\n\\n🎯 <b>Match:</b> ${$json.score}/100\\n📌 ${$json.reason}\\n\\n🔗 ${$json.url}`}}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "disable_web_page_preview": false
+        }
+      },
+      "id": "n28",
+      "name": "Telegram — enviar",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3140,
+        480
+      ],
+      "notesInFlow": true,
+      "notes": "Create/select Telegram credentials in n8n. TELEGRAM_CHAT_ID is an environment variable."
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "(from:(linkedin.com) OR from:(indeed.com)) newer_than:2d"
+        }
+      },
+      "id": "n29",
+      "name": "Gmail — alertas LinkedIn/Indeed",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        1400
+      ],
+      "disabled": true,
+      "notesInFlow": true,
+      "notes": "Optional path: use LinkedIn/Indeed email alerts instead of scraping those platforms. Enable after configuring Gmail credentials and adjust the Gmail query to the actual sender/filter in your mailbox."
+    },
+    {
+      "parameters": {
+        "content": "## FUENTES IMPLEMENTADAS\\n\\n🟢 InfoJobs API oficial (búsqueda nacional, ya no limitada a Málaga)\\n🟢 Adzuna API (búsqueda nacional España)\\n🔴 Indeed HTML — DESHABILITADO por defecto (scraping no oficial, viola ToS, frágil). Actívalo bajo tu propio riesgo.\\n🟢 Arbeitnow API\\n🟢 Himalayas API\\n🟢 Jobicy API\\n🟢 Remotive API (con atribución)\\n🟡 LinkedIn/Indeed por alertas de Gmail (nodo opcional, deshabilitado)\\n\\n## IA para valorar ofertas\\n🟢 OpenRouter (modelo gratuito vía router 'openrouter/free') — reemplaza a Ollama/Qwen local, no requiere GPU ni instalación local.\\n\\n## Orden de notificación en Telegram\\n1️⃣ Remoto  2️⃣ Híbrido  3️⃣ Presencial (dentro de cada grupo, ordenado por mejor match)\\n\\nVariables de entorno necesarias: INFOJOBS_CLIENT_ID, INFOJOBS_CLIENT_SECRET, ADZUNA_APP_ID, ADZUNA_APP_KEY, OPENROUTER_API_KEY, (opcional) OPENROUTER_MODEL, OPENROUTER_SITE_URL, TELEGRAM_CHAT_ID.\\nCredencial de Telegram: selecciónala en el nodo 'Telegram — enviar' tras importar."
+      },
+      "id": "n30",
+      "name": "Aviso de fuentes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        520,
+        1360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const order={remote:0,hybrid:1,onsite:2};\nconst items=$input.all();\nitems.sort((a,b)=>{\n  const pa=order[a.json.work_mode]??3, pb=order[b.json.work_mode]??3;\n  if(pa!==pb) return pa-pb;\n  return (b.json.score||0)-(a.json.score||0);\n});\nreturn items;"
+      },
+      "id": "n31",
+      "name": "Priorizar remoto > híbrido > presencial",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2900,
+        380
+      ],
+      "notesInFlow": true,
+      "notes": "Ordena las ofertas que pasaron el filtro de match para que Telegram las envíe primero remotas, luego híbridas y finalmente presenciales (dentro de cada grupo, mejor match primero)."
+    }
+  ],
+  "connections": {
+    "Cada mañana": {
+      "main": [
+        [
+          {
+            "node": "Perfil profesional",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perfil profesional": {
+      "main": [
+        [
+          {
+            "node": "InfoJobs — generar consultas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Adzuna — generar consultas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Indeed — generar consultas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Himalayas — generar consultas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Arbeitnow API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Jobicy API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Remotive API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InfoJobs — generar consultas": {
+      "main": [
+        [
+          {
+            "node": "InfoJobs API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InfoJobs API": {
+      "main": [
+        [
+          {
+            "node": "InfoJobs — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InfoJobs — normalizar": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adzuna — generar consultas": {
+      "main": [
+        [
+          {
+            "node": "Adzuna API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adzuna API": {
+      "main": [
+        [
+          {
+            "node": "Adzuna — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adzuna — normalizar": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Indeed — generar consultas": {
+      "main": [
+        [
+          {
+            "node": "Indeed — buscar HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Indeed — buscar HTML": {
+      "main": [
+        [
+          {
+            "node": "Indeed — extraer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Indeed — extraer": {
+      "main": [
+        [
+          {
+            "node": "Indeed — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Indeed — normalizar": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Himalayas — generar consultas": {
+      "main": [
+        [
+          {
+            "node": "Himalayas API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Himalayas API": {
+      "main": [
+        [
+          {
+            "node": "Himalayas — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Himalayas — normalizar": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Arbeitnow API": {
+      "main": [
+        [
+          {
+            "node": "Arbeitnow — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Arbeitnow — normalizar": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jobicy API": {
+      "main": [
+        [
+          {
+            "node": "Jobicy — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jobicy — normalizar": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remotive API": {
+      "main": [
+        [
+          {
+            "node": "Remotive — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remotive — normalizar": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unir fuentes": {
+      "main": [
+        [
+          {
+            "node": "Filtrar y normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar y normalizar": {
+      "main": [
+        [
+          {
+            "node": "Solo ofertas nuevas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solo ofertas nuevas": {
+      "main": [
+        [
+          {
+            "node": "OpenRouter — valorar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear valoración": {
+      "main": [
+        [
+          {
+            "node": "Match ≥ 70",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Match ≥ 70": {
+      "main": [
+        [
+          {
+            "node": "Priorizar remoto > híbrido > presencial",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Priorizar remoto > híbrido > presencial": {
+      "main": [
+        [
+          {
+            "node": "Telegram — enviar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter — valorar": {
+      "main": [
+        [
+          {
+            "node": "Parsear valoración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a77fd596-28c3-46dc-8242-129baa91c350",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
