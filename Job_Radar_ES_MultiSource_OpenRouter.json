@@ -92,7 +92,7 @@
           "response": {
             "response": {
               "responseFormat": "json",
-              "neverError": true
+              "neverError": false
             }
           }
         }
@@ -106,7 +106,8 @@
         0
       ],
       "notesInFlow": true,
-      "notes": "Requires INFOJOBS_CLIENT_ID and INFOJOBS_CLIENT_SECRET environment variables in n8n. InfoJobs API uses HTTP Basic authentication."
+      "notes": "Requires INFOJOBS_CLIENT_ID and INFOJOBS_CLIENT_SECRET environment variables in n8n. InfoJobs API uses HTTP Basic authentication.",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -166,7 +167,7 @@
           "response": {
             "response": {
               "responseFormat": "json",
-              "neverError": true
+              "neverError": false
             }
           }
         }
@@ -180,7 +181,8 @@
         220
       ],
       "notesInFlow": true,
-      "notes": "Requires ADZUNA_APP_ID and ADZUNA_APP_KEY environment variables."
+      "notes": "Requires ADZUNA_APP_ID and ADZUNA_APP_KEY environment variables.",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -329,7 +331,7 @@
           "response": {
             "response": {
               "responseFormat": "json",
-              "neverError": true
+              "neverError": false
             }
           }
         }
@@ -341,7 +343,8 @@
       "position": [
         500,
         680
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -405,7 +408,7 @@
           "response": {
             "response": {
               "responseFormat": "json",
-              "neverError": true
+              "neverError": false
             }
           }
         }
@@ -417,7 +420,8 @@
       "position": [
         740,
         900
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -452,7 +456,7 @@
           "response": {
             "response": {
               "responseFormat": "json",
-              "neverError": true
+              "neverError": false
             }
           }
         }
@@ -464,7 +468,8 @@
       "position": [
         500,
         1120
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -495,7 +500,7 @@
           "response": {
             "response": {
               "responseFormat": "json",
-              "neverError": true
+              "neverError": false
             }
           }
         }
@@ -509,7 +514,8 @@
         1120
       ],
       "notesInFlow": true,
-      "notes": "Public API data is delayed by 24h and Remotive requires attribution/link-back. This workflow keeps the source and URL in every notification."
+      "notes": "Public API data is delayed by 24h and Remotive requires attribution/link-back. This workflow keeps the source and URL in every notification.",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -594,7 +600,7 @@
           "response": {
             "response": {
               "responseFormat": "json",
-              "neverError": true
+              "neverError": false
             }
           }
         }
@@ -608,7 +614,8 @@
         560
       ],
       "notesInFlow": true,
-      "notes": "Requires OPENROUTER_API_KEY environment variable (free account at openrouter.ai). Uses the 'openrouter/free' auto-router, which picks a $0 model that supports JSON structured output — no need to hardcode a specific free model that may be retired. Optionally set OPENROUTER_MODEL to pin a specific free model (must end in ':free')."
+      "notes": "Requires OPENROUTER_API_KEY environment variable (free account at openrouter.ai). Uses the 'openrouter/free' auto-router, which picks a $0 model that supports JSON structured output — no need to hardcode a specific free model that may be retired. Optionally set OPENROUTER_MODEL to pin a specific free model (must end in ':free').",
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -703,7 +710,7 @@
     },
     {
       "parameters": {
-        "content": "## FUENTES IMPLEMENTADAS\\n\\n🟢 InfoJobs API oficial (búsqueda nacional, ya no limitada a Málaga)\\n🟢 Adzuna API (búsqueda nacional España)\\n🔴 Indeed HTML — DESHABILITADO por defecto (scraping no oficial, viola ToS, frágil). Actívalo bajo tu propio riesgo.\\n🟢 Arbeitnow API\\n🟢 Himalayas API\\n🟢 Jobicy API\\n🟢 Remotive API (con atribución)\\n🟡 LinkedIn/Indeed por alertas de Gmail (nodo opcional, deshabilitado)\\n\\n## IA para valorar ofertas\\n🟢 OpenRouter (modelo gratuito vía router 'openrouter/free') — reemplaza a Ollama/Qwen local, no requiere GPU ni instalación local.\\n\\n## Orden de notificación en Telegram\\n1️⃣ Remoto  2️⃣ Híbrido  3️⃣ Presencial (dentro de cada grupo, ordenado por mejor match)\\n\\nSalario mínimo: 40.000€/año (jornada completa), 25.000€/año (parcial) o 25€/hora — ofertas sin salario publicado NO se descartan.\\n\\nVariables de entorno necesarias: INFOJOBS_CLIENT_ID, INFOJOBS_CLIENT_SECRET, ADZUNA_APP_ID, ADZUNA_APP_KEY, OPENROUTER_API_KEY, (opcional) OPENROUTER_MODEL, OPENROUTER_SITE_URL, TELEGRAM_CHAT_ID.\\nCredencial de Telegram: selecciónala en el nodo 'Telegram — enviar' tras importar."
+        "content": "## FUENTES IMPLEMENTADAS\\n\\n🟢 InfoJobs API oficial (búsqueda nacional, ya no limitada a Málaga)\\n🟢 Adzuna API (búsqueda nacional España)\\n🔴 Indeed HTML — DESHABILITADO por defecto (scraping no oficial, viola ToS, frágil). Actívalo bajo tu propio riesgo.\\n🟢 Arbeitnow API\\n🟢 Himalayas API\\n🟢 Jobicy API\\n🟢 Remotive API (con atribución)\\n🟡 LinkedIn/Indeed por alertas de Gmail (nodo opcional, deshabilitado)\\n\\n## IA para valorar ofertas\\n🟢 OpenRouter (modelo gratuito vía router 'openrouter/free') — reemplaza a Ollama/Qwen local, no requiere GPU ni instalación local.\\n\\n## Orden de notificación en Telegram\\n1️⃣ Remoto  2️⃣ Híbrido  3️⃣ Presencial (dentro de cada grupo, ordenado por mejor match)\\n\\nSalario mínimo: 40.000€/año (jornada completa), 25.000€/año (parcial) o 25€/hora — ofertas sin salario publicado NO se descartan.\\n\\n## Registro y alertas\\n🟢 Cada oferta notificada por Telegram se registra también en Google Sheets (credencial + GOOGLE_SHEET_ID).\\n🟢 Si una fuente (InfoJobs, Adzuna, Arbeitnow, Himalayas, Jobicy, Remotive) o OpenRouter falla (credenciales inválidas, rate limit, 5xx, timeout), se envía una alerta a Telegram con el motivo.\\n\\nVariables de entorno necesarias: INFOJOBS_CLIENT_ID, INFOJOBS_CLIENT_SECRET, ADZUNA_APP_ID, ADZUNA_APP_KEY, OPENROUTER_API_KEY, (opcional) OPENROUTER_MODEL, OPENROUTER_SITE_URL, TELEGRAM_CHAT_ID, GOOGLE_SHEET_ID, (opcional) TELEGRAM_ADMIN_CHAT_ID.\\nCredencial de Telegram: selecciónala en el nodo 'Telegram — enviar' tras importar."
       },
       "id": "n30",
       "name": "Aviso de fuentes",
@@ -728,6 +735,173 @@
       ],
       "notesInFlow": true,
       "notes": "Ordena las ofertas que pasaron el filtro de match para que Telegram las envíe primero remotas, luego híbridas y finalmente presenciales (dentro de cada grupo, mejor match primero)."
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{ source:\"InfoJobs API\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
+      },
+      "id": "n32",
+      "name": "Fallo — InfoJobs API",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{ source:\"Adzuna API\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
+      },
+      "id": "n33",
+      "name": "Fallo — Adzuna API",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{ source:\"Arbeitnow API\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
+      },
+      "id": "n34",
+      "name": "Fallo — Arbeitnow API",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        840
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{ source:\"Himalayas API\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
+      },
+      "id": "n35",
+      "name": "Fallo — Himalayas API",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{ source:\"Jobicy API\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
+      },
+      "id": "n36",
+      "name": "Fallo — Jobicy API",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{ source:\"Remotive API\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
+      },
+      "id": "n37",
+      "name": "Fallo — Remotive API",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{ source:\"OpenRouter — valorar\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
+      },
+      "id": "n38",
+      "name": "Fallo — OpenRouter — valorar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2180,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "n39",
+      "name": "Unir fallos",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2420,
+        1020
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ADMIN_CHAT_ID || $env.TELEGRAM_CHAT_ID}}",
+        "text": "={{`⚠️ <b>Fallo en fuente: ${$json.source}</b>\\n\\n${$json.error}\\n\\n🕐 ${$json.time}`}}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "n40",
+      "name": "Telegram — alerta de fallo",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2660,
+        1020
+      ],
+      "notesInFlow": true,
+      "notes": "Usa la misma credencial de Telegram que el nodo de notificaciones. Opcionalmente define TELEGRAM_ADMIN_CHAT_ID para avisar a un chat distinto (ej. solo tú, no un grupo)."
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{$env.GOOGLE_SHEET_ID}}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Ofertas",
+          "mode": "list",
+          "cachedResultName": "Ofertas"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha": "={{$now.toISO()}}",
+            "fuente": "={{$json.source}}",
+            "modalidad": "={{$json.work_mode}}",
+            "titulo": "={{$json.title}}",
+            "empresa": "={{$json.company}}",
+            "ubicacion": "={{$json.location}}",
+            "salario": "={{$json.salary}}",
+            "match": "={{$json.score}}",
+            "motivo": "={{$json.reason}}",
+            "url": "={{$json.url}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "n41",
+      "name": "Google Sheets — registrar oferta",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3140,
+        620
+      ],
+      "notesInFlow": true,
+      "notes": "Requiere credencial de Google Sheets (OAuth2) y la variable de entorno GOOGLE_SHEET_ID (ID de la hoja de cálculo). Crea una pestaña llamada 'Ofertas' con encabezados: fecha, fuente, modalidad, titulo, empresa, ubicacion, salario, match, motivo, url — o deja que n8n la cree al mapear las columnas tras importar."
     }
   ],
   "connections": {
@@ -814,6 +988,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Fallo — InfoJobs API",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -844,6 +1025,13 @@
         [
           {
             "node": "Adzuna — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallo — Adzuna API",
             "type": "main",
             "index": 0
           }
@@ -924,6 +1112,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Fallo — Himalayas API",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -943,6 +1138,13 @@
         [
           {
             "node": "Arbeitnow — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallo — Arbeitnow API",
             "type": "main",
             "index": 0
           }
@@ -968,6 +1170,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Fallo — Jobicy API",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -987,6 +1196,13 @@
         [
           {
             "node": "Remotive — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallo — Remotive API",
             "type": "main",
             "index": 0
           }
@@ -1067,6 +1283,11 @@
             "node": "Telegram — enviar",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Google Sheets — registrar oferta",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -1076,6 +1297,101 @@
         [
           {
             "node": "Parsear valoración",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallo — OpenRouter — valorar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallo — InfoJobs API": {
+      "main": [
+        [
+          {
+            "node": "Unir fallos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallo — Adzuna API": {
+      "main": [
+        [
+          {
+            "node": "Unir fallos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallo — Arbeitnow API": {
+      "main": [
+        [
+          {
+            "node": "Unir fallos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallo — Himalayas API": {
+      "main": [
+        [
+          {
+            "node": "Unir fallos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallo — Jobicy API": {
+      "main": [
+        [
+          {
+            "node": "Unir fallos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallo — Remotive API": {
+      "main": [
+        [
+          {
+            "node": "Unir fallos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallo — OpenRouter — valorar": {
+      "main": [
+        [
+          {
+            "node": "Unir fallos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unir fallos": {
+      "main": [
+        [
+          {
+            "node": "Telegram — alerta de fallo",
             "type": "main",
             "index": 0
           }
