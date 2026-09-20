@@ -738,7 +738,7 @@
     {
       "parameters": {
         "mode": "append",
-        "numberInputs": 8
+        "numberInputs": 9
       },
       "id": "n39",
       "name": "Unir fallos",
@@ -957,6 +957,83 @@
       ],
       "parameters": {
         "jsCode": "\nfunction pickUrl(j){\n  const opt = (j.apply_options || []).find(o => /indeed/i.test(o.title || \"\"));\n  return (opt && opt.link) || j.share_link || \"\";\n}\n\nconst out=[];\nfor(const item of $input.all()){\n  const results = Array.isArray(item.json.jobs_results) ? item.json.jobs_results : [];\n  const indeedJobs = results.filter(j => /indeed/i.test(j.via || \"\"));\n  for(const j of indeedJobs){\n    out.push({json:{\n      source: \"Indeed\",\n      id: j.job_id || pickUrl(j) || `${j.company_name || \"\"}|${j.title || \"\"}|${j.location || \"\"}`,\n      title: j.title || \"\",\n      company: j.company_name || \"No indicada\",\n      location: j.location || \"No indicada\",\n      description: j.description || \"\",\n      salary: (j.detected_extensions && j.detected_extensions.salary) || \"\",\n      published: \"\",\n      url: pickUrl(j)\n    }});\n  }\n}\nreturn out;\n"
+      }
+    },
+    {
+      "id": "54aa27aa-4b5d-49a3-8855-2ba2f926f9d2",
+      "name": "Indeed — generar consultas (Apify)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        2850
+      ],
+      "parameters": {
+        "jsCode": "\nconst p = $('Perfil profesional').first().json.profile;\nconst qs = p.search_queries.slice(0, 18);\nreturn qs.map(q => ({json: {\n  source: \"Indeed\",\n  query: q,\n  location: \"España\",\n  profile: p\n}}));\n"
+      }
+    },
+    {
+      "id": "34f02e76-affb-4017-8754-bcade1551caa",
+      "name": "Indeed (Apify)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        656,
+        2850
+      ],
+      "notesInFlow": true,
+      "onError": "continueErrorOutput",
+      "notes": "Requires APIFY_API_TOKEN environment variable (apify.com, free plan: $5 credit/month ≈ 50,000 results at $0.10/1000). Runs the 'valig/indeed-jobs-scraper' Actor synchronously and returns its dataset items directly — no polling needed. Scrapes Indeed.com via Apify's own infrastructure (proxies + real browser), so it isn't blocked by Cloudflare the way a direct request from this server would be.",
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/valig~indeed-jobs-scraper/run-sync-get-dataset-items",
+        "method": "POST",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "={{$env.APIFY_API_TOKEN}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { title: $json.query, country: \"ES\", location: $json.location, limit: 20 } }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": false
+            }
+          },
+          "timeout": 120000
+        }
+      }
+    },
+    {
+      "id": "ad9ae4e3-d04b-4269-a8ee-391c4fc43351",
+      "name": "Indeed — normalizar (Apify)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        2850
+      ],
+      "parameters": {
+        "jsCode": "\nconst out=[];\nfor(const item of $input.all()){\n  const j = item.json;\n  if(!j || !j.title) continue;\n  out.push({json:{\n    source: \"Indeed\",\n    id: j.jobKey || j.refNum || j.jobUrl || `${j.companyName||\"\"}|${j.title||\"\"}|${j.city||\"\"}`,\n    title: j.title || j.displayTitle || \"\",\n    company: j.companyName || \"No indicada\",\n    location: [j.city, j.countryCode].filter(Boolean).join(\", \") || \"No indicada\",\n    description: j.descriptionText || \"\",\n    salary: (j.salary && j.salary.text) || \"\",\n    published: j.datePublished || \"\",\n    url: j.jobUrl || j.applyUrl || \"\"\n  }});\n}\nreturn out;\n"
+      }
+    },
+    {
+      "id": "27d3edab-0c83-4680-9140-21f7edd22c37",
+      "name": "Fallo — Indeed (Apify)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2128,
+        2800
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{ source:\"Indeed (Apify)\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
       }
     }
   ],
@@ -1469,6 +1546,57 @@
         [
           {
             "node": "Unir fuentes",
+            "type": "main",
+            "index": 8
+          }
+        ]
+      ]
+    },
+    "Indeed — generar consultas (Apify)": {
+      "main": [
+        [
+          {
+            "node": "Indeed (Apify)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Indeed (Apify)": {
+      "main": [
+        [
+          {
+            "node": "Indeed — normalizar (Apify)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallo — Indeed (Apify)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Indeed — normalizar (Apify)": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Fallo — Indeed (Apify)": {
+      "main": [
+        [
+          {
+            "node": "Unir fallos",
             "type": "main",
             "index": 8
           }
