@@ -1020,7 +1020,7 @@
         1560
       ],
       "parameters": {
-        "jsCode": "\nconst results = Array.isArray($json.jobs_results) ? $json.jobs_results : [];\nconst linkedinJobs = results.filter(j => /linkedin/i.test(j.via || \"\"));\n\nfunction pickUrl(j){\n  const opt = (j.apply_options || []).find(o => /linkedin/i.test(o.title || \"\"));\n  return (opt && opt.link) || j.share_link || \"\";\n}\n\nreturn linkedinJobs.map(j => ({json: {\n source: \"LinkedIn\",\n id: j.job_id || pickUrl(j) || `${j.company_name || \"\"}|${j.title || \"\"}|${j.location || \"\"}`,\n title: j.title || \"\",\n company: j.company_name || \"No indicada\",\n location: j.location || \"No indicada\",\n description: j.description || \"\",\n salary: (j.detected_extensions && j.detected_extensions.salary) || \"\",\n published: \"\",\n url: pickUrl(j)\n}}));\n"
+        "jsCode": "\nfunction pickUrl(j){\n  const opt = (j.apply_options || []).find(o => /linkedin/i.test(o.title || \"\"));\n  return (opt && opt.link) || j.share_link || \"\";\n}\n\nconst out=[];\nfor(const item of $input.all()){\n  const results = Array.isArray(item.json.jobs_results) ? item.json.jobs_results : [];\n  const linkedinJobs = results.filter(j => /linkedin/i.test(j.via || \"\"));\n  for(const j of linkedinJobs){\n    out.push({json:{\n      source: \"LinkedIn\",\n      id: j.job_id || pickUrl(j) || `${j.company_name || \"\"}|${j.title || \"\"}|${j.location || \"\"}`,\n      title: j.title || \"\",\n      company: j.company_name || \"No indicada\",\n      location: j.location || \"No indicada\",\n      description: j.description || \"\",\n      salary: (j.detected_extensions && j.detected_extensions.salary) || \"\",\n      published: \"\",\n      url: pickUrl(j)\n    }});\n  }\n}\nreturn out;\n"
       }
     },
     {
@@ -1046,7 +1046,7 @@
         2790
       ],
       "parameters": {
-        "jsCode": "\nconst results = Array.isArray($json.jobs_results) ? $json.jobs_results : [];\nconst indeedJobs = results.filter(j => /indeed/i.test(j.via || \"\"));\n\nfunction pickUrl(j){\n  const opt = (j.apply_options || []).find(o => /indeed/i.test(o.title || \"\"));\n  return (opt && opt.link) || j.share_link || \"\";\n}\n\nreturn indeedJobs.map(j => ({json: {\n source: \"Indeed\",\n id: j.job_id || pickUrl(j) || `${j.company_name || \"\"}|${j.title || \"\"}|${j.location || \"\"}`,\n title: j.title || \"\",\n company: j.company_name || \"No indicada\",\n location: j.location || \"No indicada\",\n description: j.description || \"\",\n salary: (j.detected_extensions && j.detected_extensions.salary) || \"\",\n published: \"\",\n url: pickUrl(j)\n}}));\n"
+        "jsCode": "\nfunction pickUrl(j){\n  const opt = (j.apply_options || []).find(o => /indeed/i.test(o.title || \"\"));\n  return (opt && opt.link) || j.share_link || \"\";\n}\n\nconst out=[];\nfor(const item of $input.all()){\n  const results = Array.isArray(item.json.jobs_results) ? item.json.jobs_results : [];\n  const indeedJobs = results.filter(j => /indeed/i.test(j.via || \"\"));\n  for(const j of indeedJobs){\n    out.push({json:{\n      source: \"Indeed\",\n      id: j.job_id || pickUrl(j) || `${j.company_name || \"\"}|${j.title || \"\"}|${j.location || \"\"}`,\n      title: j.title || \"\",\n      company: j.company_name || \"No indicada\",\n      location: j.location || \"No indicada\",\n      description: j.description || \"\",\n      salary: (j.detected_extensions && j.detected_extensions.salary) || \"\",\n      published: \"\",\n      url: pickUrl(j)\n    }});\n  }\n}\nreturn out;\n"
       }
     }
   ],
