@@ -107,5 +107,5 @@
   "minimum_hourly_rate": 25,
   "salary_currency": "EUR",
   "max_age_days": 7,
-  "minimum_keyword_matches": 2
+  "minimum_keyword_matches": 1
 }
