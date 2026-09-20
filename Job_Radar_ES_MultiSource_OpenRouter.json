@@ -1006,7 +1006,13 @@
               "neverError": false
             }
           },
-          "timeout": 120000
+          "timeout": 120000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
+            }
+          }
         }
       }
     },
