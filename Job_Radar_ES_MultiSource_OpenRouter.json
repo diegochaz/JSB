@@ -199,83 +199,6 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst p = $('Perfil profesional').first().json.profile;\nconst qs = p.search_queries.slice(0, 18);\nreturn qs.map(q => ({json: {\n  source: \"Indeed\",\n  query: q,\n  location: \"Málaga\",\n  profile: p\n}}));\n"
-      },
-      "id": "n9",
-      "name": "Indeed — generar consultas",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        500,
-        440
-      ]
-    },
-    {
-      "parameters": {
-        "url": "https://es.indeed.com/jobs",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "q",
-              "value": "={{$json.query}}"
-            },
-            {
-              "name": "l",
-              "value": "Málaga"
-            },
-            {
-              "name": "fromage",
-              "value": "7"
-            },
-            {
-              "name": "sort",
-              "value": "date"
-            }
-          ]
-        },
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Accept-Language",
-              "value": "es-ES,es;q=0.9,en;q=0.8"
-            },
-            {
-              "name": "User-Agent",
-              "value": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131 Safari/537.36"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text",
-              "neverError": true
-            }
-          },
-          "batching": {
-            "batch": {
-              "batchSize": 1,
-              "batchInterval": 1000
-            }
-          }
-        }
-      },
-      "id": "n10",
-      "name": "Indeed — buscar HTML",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        740,
-        440
-      ],
-      "notesInFlow": true,
-      "notes": "Disabled: Indeed serves a Cloudflare managed challenge (captcha) on 100% of requests from this server's IP (confirmed on a real run — all 7 queries got window.INDEED_CLOUDFLARE_STATIC_PAGE captcha pages, not search results). This can't be solved with a plain HTTP request — it needs a real browser or a paid unblocking proxy. Indeed listings now come from the 'Indeed — normalizar (SerpApi)' node instead, reusing the same Google Jobs response already fetched for LinkedIn.",
-      "disabled": true
-    },
-    {
-      "parameters": {
         "operation": "extractHtmlContent",
         "extractionValues": {
           "values": [
@@ -314,19 +237,6 @@
       "typeVersion": 1.2,
       "position": [
         980,
-        440
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "\nconst out=[];\nfor(const item of $input.all()){\n  const x=item.json, t=Array.isArray(x.titles)?x.titles:[], c=Array.isArray(x.companies)?x.companies:[], l=Array.isArray(x.locations)?x.locations:[], u=Array.isArray(x.links)?x.links:[];\n  t.forEach((title,i)=>{\n    let url=u[i]||\"\"; if(url.startsWith(\"/\")) url=\"https://es.indeed.com\"+url;\n    out.push({json:{\n      source:\"Indeed\", id:url||`${c[i]||\"\"}|${title}|${l[i]||\"\"}`, title, company:c[i]||\"No indicada\",\n      location:l[i]||\"No indicada\", description:\"\", salary:\"\", published:\"\", url\n    }});\n  });\n}\nreturn out;\n"
-      },
-      "id": "n12",
-      "name": "Indeed — normalizar",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1220,
         440
       ]
     },
@@ -558,7 +468,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst p=$('Perfil profesional').first().json.profile;\nconst norm=s=>String(s||\"\").normalize(\"NFD\").replace(/[̀-ͯ]/g,\"\").toLowerCase().replace(/\\b(\\w+)\\/[ao]\\b/g,\"$1\");\nconst hard=(p.hard_exclusions||[]).map(norm);\nconst keys=(p.keywords||[]).map(norm);\nconst roles=[...(p.target_roles||[]),...(p.transition_roles||[])].map(norm);\nconst allowed=(p.locations_allowed||[]).map(norm);\nconst onsiteAllowed=(p.onsite_locations_allowed||[]).map(norm);\nconst hybridAllowed=(p.hybrid_locations_allowed||[]).map(norm);\nconst now=Date.now(), maxAge=(p.max_age_days||7)*86400000;\n\nfunction dateMs(v){ if(!v)return null; if(typeof v===\"number\"){return v<1e12?v*1000:v;} const t=Date.parse(v); return Number.isNaN(t)?null:t; }\nfunction isHybridText(t){return /\\bhybrid\\b|\\bh[ií]brid[oa]s?\\b/.test(t);}\nfunction isRemoteText(t){return (/\\bremote\\b|\\bremot[oa]s?\\b|\\bteletrabajo\\b/.test(t)) && !isHybridText(t);}\nfunction isPartTimeText(t){return /\\bpart[\\s-]?time\\b|\\btiempo parcial\\b|\\bmedia jornada\\b|\\bpor horas\\b|\\bfreelance\\b|\\bautonomo\\b/.test(t);}\n\nfunction isNonEuropeRemoteText(t){return /\\blatinoamerica\\b|\\blatin america\\b|\\bestados unidos\\b|\\bunited states\\b|\\busa\\b|\\bcanada\\b|\\bmexico\\b|\\bargentina\\b|\\bcolombia\\b|\\bchile\\b|\\bperu\\b|\\bbrasil\\b|\\bbrazil\\b|\\basia\\b|\\bafrica\\b|\\baustralia\\b|\\bindia\\b/.test(t);}\nfunction isEuropeText(t){return /\\beurope\\b|\\beuropa\\b|\\beuropean union\\b|\\bunion europea\\b|\\b(reino unido|united kingdom)\\b|\\buk\\b|\\bgermany\\b|\\balemania\\b|\\bfrance\\b|\\bfrancia\\b|\\bitaly\\b|\\bitalia\\b|\\bnetherlands\\b|\\bpaises bajos\\b|\\bholanda\\b|\\bportugal\\b|\\bbelgium\\b|\\bbelgica\\b|\\bpoland\\b|\\bpolonia\\b|\\bsweden\\b|\\bsuecia\\b|\\bdenmark\\b|\\bdinamarca\\b|\\bnorway\\b|\\bnoruega\\b|\\bireland\\b|\\birlanda\\b|\\baustria\\b|\\bswitzerland\\b|\\bsuiza\\b|\\bfinland\\b|\\bfinlandia\\b|\\bgreece\\b|\\bgrecia\\b|\\bczech\\b|\\brepublica checa\\b|\\bromania\\b|\\brumania\\b|\\bhungary\\b|\\bhungria\\b|\\bluxembourg\\b|\\bluxemburgo\\b/.test(t);}\n\n// Detects languages OTHER than English/Spanish explicitly required by the posting.\n// Remote jobs based in Europe are only excluded on language grounds when they\n// require a language other than English and/or Spanish; English/Spanish-only\n// remote EU postings must never be excluded by this check.\nconst OTHER_LANGUAGE_PATTERNS=[\n  [/\\b(german|aleman)\\b/,\"german\"],[/\\b(french|frances)\\b/,\"french\"],[/\\b(italian|italiano)\\b/,\"italian\"],\n  [/\\b(dutch|neerlandes|holandes)\\b/,\"dutch\"],[/\\b(portuguese|portugues)\\b/,\"portuguese\"],\n  [/\\b(polish|polaco)\\b/,\"polish\"],[/\\b(swedish|sueco)\\b/,\"swedish\"],[/\\b(danish|danes)\\b/,\"danish\"],\n  [/\\b(norwegian|noruego)\\b/,\"norwegian\"],[/\\b(finnish|finlandes)\\b/,\"finnish\"],[/\\b(greek|griego)\\b/,\"greek\"],\n  [/\\b(czech|checo)\\b/,\"czech\"],[/\\b(romanian|rumano)\\b/,\"romanian\"],[/\\b(hungarian|hungaro)\\b/,\"hungarian\"],\n  [/\\b(turkish|turco)\\b/,\"turkish\"],[/\\b(arabic|arabe)\\b/,\"arabic\"],[/\\b(mandarin|chinese|chino)\\b/,\"chinese\"],\n  [/\\b(japanese|japones)\\b/,\"japanese\"],[/\\b(russian|ruso)\\b/,\"russian\"]\n];\nconst LANGUAGE_REQUIREMENT_MARKER=/\\b(fluent|fluency|native|nativo|nativa|c1|c2|b2|proficient|proficiency|required|requerido|requerida|imprescindible|obligatorio|obligatoria|necesario|necesaria|se requiere|conocimientos de|dominio de|nivel alto de|advanced|working knowledge of)\\b/;\nfunction requiresOtherLanguage(t){\n  for(const [re,name] of OTHER_LANGUAGE_PATTERNS){\n    const m=t.match(re);\n    if(!m) continue;\n    const window=t.slice(Math.max(0,m.index-60), Math.min(t.length,m.index+60));\n    if(LANGUAGE_REQUIREMENT_MARKER.test(window)) return name;\n  }\n  return null;\n}\n\n// Returns {type:\"hourly\"|\"annual\", value:number} or null if no salary is published.\n// No published salary must NOT disqualify the listing (per profile instructions).\nfunction parseSalarySignal(salaryStr, text){\n  const s=String(salaryStr||\"\");\n  const hourly=s.match(/([\\d.,]+)\\s*(?:€|eur)?\\s*\\/?\\s*(?:hora|hour|h)\\b/i) || text.match(/([\\d.,]+)\\s*(?:€|eur)\\s*\\/?\\s*(?:hora|hour)\\b/i);\n  if(hourly){\n    return {type:\"hourly\", value:Number(hourly[1].replace(/\\./g,\"\").replace(\",\", \".\"))};\n  }\n  const annual=s.match(/(?:€|EUR)\\s*([\\d.,]+)/i) || s.match(/([\\d.,]+)\\s*(?:€|EUR)/i);\n  if(annual){\n    return {type:\"annual\", value:Number(annual[1].replace(/\\./g,\"\").replace(\",\", \".\"))};\n  }\n  return null;\n}\n\nconst out=[];\nfor(const it of $input.all()){\n const j=it.json, title=String(j.title||\"\").trim();\n if(!title) continue;\n const text=norm([title,j.company,j.location,j.description].join(\" \"));\n if(hard.some(x=>x&&text.includes(x))) continue;\n\n const titleRoles=roles.filter(x=>x&&norm(title).includes(x));\n const matches=[...new Set(keys.filter(x=>x&&text.includes(x)).concat(titleRoles))];\n if(matches.length < (p.minimum_keyword_matches||1)) continue;\n\n const loc=norm(j.location);\n const hybrid=isHybridText(text);\n const remote=isRemoteText(text);\n const work_mode = remote ? \"remote\" : (hybrid ? \"hybrid\" : \"onsite\");\n\n if(work_mode===\"remote\" && !p.remote_allowed) continue;\n if(work_mode===\"hybrid\" && !p.hybrid_allowed) continue;\n if(work_mode===\"onsite\" && !p.onsite_allowed) continue;\n\n // Onsite: only Málaga. Hybrid: Málaga, Madrid or Andalucía (e.g. Sevilla). Remote: anywhere in Europe.\n if(work_mode===\"onsite\" && !onsiteAllowed.some(x=>x&&loc.includes(x))) continue;\n if(work_mode===\"hybrid\" && !hybridAllowed.some(x=>x&&loc.includes(x))) continue;\n if(work_mode===\"remote\"){\n   const explicitlyNonEurope = isNonEuropeRemoteText(text) && !isEuropeText(text) && !allowed.some(x=>x&&loc.includes(x));\n   if(explicitlyNonEurope) continue;\n }\n\n if(remote && isEuropeText(text) && requiresOtherLanguage(text)) continue;\n\n const dt=dateMs(j.published);\n if(dt && now-dt>maxAge) continue;\n\n const salarySignal=parseSalarySignal(j.salary, text);\n if(salarySignal){\n   if(salarySignal.type===\"hourly\"){\n     if(p.minimum_hourly_rate && salarySignal.value < p.minimum_hourly_rate) continue;\n   } else {\n     const partTime=isPartTimeText(text);\n     const threshold=partTime ? p.minimum_salary_part_time : p.minimum_salary_full_time;\n     if(threshold && salarySignal.value < threshold) continue;\n   }\n }\n // No salary published -> do not discard, keep the listing.\n\n const canonical=String(j.url||\"\").trim();\n const id=j.id || canonical || `${j.source}|${j.company}|${title}|${j.location}`;\n out.push({json:{\n   ...j,id,title,company:j.company||\"No indicada\",location:j.location||\"No indicada\",\n   salary:j.salary||\"No indicado\",published:j.published||\"No indicada\",\n   description:String(j.description||\"\").replace(/<[^>]+>/g,\" \").replace(/\\s+/g,\" \").trim(),\n   url:canonical,matches,match_count:matches.length,remote,hybrid,work_mode\n }});\n}\nreturn out.sort((a,b)=>b.json.match_count-a.json.match_count);\n\n"
+        "jsCode": "\nconst p=$('Perfil profesional').first().json.profile;\nconst norm=s=>String(s||\"\").normalize(\"NFD\").replace(/[̀-ͯ]/g,\"\").toLowerCase().replace(/\\b(\\w+)\\/[ao]\\b/g,\"$1\");\nconst hard=(p.hard_exclusions||[]).map(norm);\nconst keys=(p.keywords||[]).map(norm);\nconst roles=[...(p.target_roles||[]),...(p.transition_roles||[])].map(norm);\nconst SPECIFIC_KEYWORDS=new Set([\n  \"franchise development\",\"franchise expansion\",\"franchisee recruitment\",\n  \"business transfers\",\"traspasos de negocio\",\"commercial real estate\",\"real estate comercial\",\n  \"multi-unit management\",\"multi-unit network\",\"franchise agreements\",\"international expansion\",\n  \"horeca\",\"desarrollo de franquicias\",\"expansion de franquicias\",\"captacion de franquiciados\",\n  \"gestion multiunidad\",\"expansion internacional\",\"acuerdos de franquicia\"\n].map(norm));\nconst allowed=(p.locations_allowed||[]).map(norm);\nconst onsiteAllowed=(p.onsite_locations_allowed||[]).map(norm);\nconst hybridAllowed=(p.hybrid_locations_allowed||[]).map(norm);\nconst now=Date.now(), maxAge=(p.max_age_days||7)*86400000;\n\nfunction dateMs(v){ if(!v)return null; if(typeof v===\"number\"){return v<1e12?v*1000:v;} const t=Date.parse(v); return Number.isNaN(t)?null:t; }\nfunction isHybridText(t){return /\\bhybrid\\b|\\bh[ií]brid[oa]s?\\b/.test(t);}\nfunction isRemoteText(t){return (/\\bremote\\b|\\bremot[oa]s?\\b|\\bteletrabajo\\b/.test(t)) && !isHybridText(t);}\nfunction isPartTimeText(t){return /\\bpart[\\s-]?time\\b|\\btiempo parcial\\b|\\bmedia jornada\\b|\\bpor horas\\b|\\bfreelance\\b|\\bautonomo\\b/.test(t);}\n\nfunction isNonEuropeRemoteText(t){return /\\blatinoamerica\\b|\\blatin america\\b|\\bestados unidos\\b|\\bunited states\\b|\\busa\\b|\\bcanada\\b|\\bmexico\\b|\\bargentina\\b|\\bcolombia\\b|\\bchile\\b|\\bperu\\b|\\bbrasil\\b|\\bbrazil\\b|\\basia\\b|\\bafrica\\b|\\baustralia\\b|\\bindia\\b/.test(t);}\nfunction isEuropeText(t){return /\\beurope\\b|\\beuropa\\b|\\beuropean union\\b|\\bunion europea\\b|\\b(reino unido|united kingdom)\\b|\\buk\\b|\\bgermany\\b|\\balemania\\b|\\bfrance\\b|\\bfrancia\\b|\\bitaly\\b|\\bitalia\\b|\\bnetherlands\\b|\\bpaises bajos\\b|\\bholanda\\b|\\bportugal\\b|\\bbelgium\\b|\\bbelgica\\b|\\bpoland\\b|\\bpolonia\\b|\\bsweden\\b|\\bsuecia\\b|\\bdenmark\\b|\\bdinamarca\\b|\\bnorway\\b|\\bnoruega\\b|\\bireland\\b|\\birlanda\\b|\\baustria\\b|\\bswitzerland\\b|\\bsuiza\\b|\\bfinland\\b|\\bfinlandia\\b|\\bgreece\\b|\\bgrecia\\b|\\bczech\\b|\\brepublica checa\\b|\\bromania\\b|\\brumania\\b|\\bhungary\\b|\\bhungria\\b|\\bluxembourg\\b|\\bluxemburgo\\b/.test(t);}\n\n// Detects languages OTHER than English/Spanish explicitly required by the posting.\n// Remote jobs based in Europe are only excluded on language grounds when they\n// require a language other than English and/or Spanish; English/Spanish-only\n// remote EU postings must never be excluded by this check.\nconst OTHER_LANGUAGE_PATTERNS=[\n  [/\\b(german|aleman)\\b/,\"german\"],[/\\b(french|frances)\\b/,\"french\"],[/\\b(italian|italiano)\\b/,\"italian\"],\n  [/\\b(dutch|neerlandes|holandes)\\b/,\"dutch\"],[/\\b(portuguese|portugues)\\b/,\"portuguese\"],\n  [/\\b(polish|polaco)\\b/,\"polish\"],[/\\b(swedish|sueco)\\b/,\"swedish\"],[/\\b(danish|danes)\\b/,\"danish\"],\n  [/\\b(norwegian|noruego)\\b/,\"norwegian\"],[/\\b(finnish|finlandes)\\b/,\"finnish\"],[/\\b(greek|griego)\\b/,\"greek\"],\n  [/\\b(czech|checo)\\b/,\"czech\"],[/\\b(romanian|rumano)\\b/,\"romanian\"],[/\\b(hungarian|hungaro)\\b/,\"hungarian\"],\n  [/\\b(turkish|turco)\\b/,\"turkish\"],[/\\b(arabic|arabe)\\b/,\"arabic\"],[/\\b(mandarin|chinese|chino)\\b/,\"chinese\"],\n  [/\\b(japanese|japones)\\b/,\"japanese\"],[/\\b(russian|ruso)\\b/,\"russian\"]\n];\nconst LANGUAGE_REQUIREMENT_MARKER=/\\b(fluent|fluency|native|nativo|nativa|c1|c2|b2|proficient|proficiency|required|requerido|requerida|imprescindible|obligatorio|obligatoria|necesario|necesaria|se requiere|conocimientos de|dominio de|nivel alto de|advanced|working knowledge of)\\b/;\nfunction requiresOtherLanguage(t){\n  for(const [re,name] of OTHER_LANGUAGE_PATTERNS){\n    const m=t.match(re);\n    if(!m) continue;\n    const window=t.slice(Math.max(0,m.index-60), Math.min(t.length,m.index+60));\n    if(LANGUAGE_REQUIREMENT_MARKER.test(window)) return name;\n  }\n  return null;\n}\n\n// Returns {type:\"hourly\"|\"annual\", value:number} or null if no salary is published.\n// No published salary must NOT disqualify the listing (per profile instructions).\nfunction parseSalarySignal(salaryStr, text){\n  const s=String(salaryStr||\"\");\n  const hourly=s.match(/([\\d.,]+)\\s*(?:€|eur)?\\s*\\/?\\s*(?:hora|hour|h)\\b/i) || text.match(/([\\d.,]+)\\s*(?:€|eur)\\s*\\/?\\s*(?:hora|hour)\\b/i);\n  if(hourly){\n    return {type:\"hourly\", value:Number(hourly[1].replace(/\\./g,\"\").replace(\",\", \".\"))};\n  }\n  const annual=s.match(/(?:€|EUR)\\s*([\\d.,]+)/i) || s.match(/([\\d.,]+)\\s*(?:€|EUR)/i);\n  if(annual){\n    return {type:\"annual\", value:Number(annual[1].replace(/\\./g,\"\").replace(\",\", \".\"))};\n  }\n  return null;\n}\n\nconst out=[];\nfor(const it of $input.all()){\n const j=it.json, title=String(j.title||\"\").trim();\n if(!title) continue;\n const text=norm([title,j.company,j.location,j.description].join(\" \"));\n if(hard.some(x=>x&&text.includes(x))) continue;\n\n const titleRoles=roles.filter(x=>x&&norm(title).includes(x));\n const kwMatches=keys.filter(x=>x&&text.includes(x));\n const specificMatches=kwMatches.filter(x=>SPECIFIC_KEYWORDS.has(x));\n const genericMatches=kwMatches.filter(x=>!SPECIFIC_KEYWORDS.has(x));\n const matches=[...new Set(kwMatches.concat(titleRoles))];\n // Título coincide con un rol objetivo, o keyword específica -> 1 señal alcanza.\n // Solo keywords genéricas (amplias, poco específicas) -> hacen falta 2 para corroborar.\n const strongSignal = titleRoles.length>0 || specificMatches.length>0;\n if(!strongSignal && genericMatches.length < (p.minimum_keyword_matches||2)) continue;\n\n const loc=norm(j.location);\n const hybrid=isHybridText(text);\n const remote=isRemoteText(text);\n const work_mode = remote ? \"remote\" : (hybrid ? \"hybrid\" : \"onsite\");\n\n if(work_mode===\"remote\" && !p.remote_allowed) continue;\n if(work_mode===\"hybrid\" && !p.hybrid_allowed) continue;\n if(work_mode===\"onsite\" && !p.onsite_allowed) continue;\n\n // Onsite: only Málaga. Hybrid: Málaga, Madrid or Andalucía (e.g. Sevilla). Remote: anywhere in Europe.\n if(work_mode===\"onsite\" && !onsiteAllowed.some(x=>x&&loc.includes(x))) continue;\n if(work_mode===\"hybrid\" && !hybridAllowed.some(x=>x&&loc.includes(x))) continue;\n if(work_mode===\"remote\"){\n   const explicitlyNonEurope = isNonEuropeRemoteText(text) && !isEuropeText(text) && !allowed.some(x=>x&&loc.includes(x));\n   if(explicitlyNonEurope) continue;\n }\n\n if(remote && isEuropeText(text) && requiresOtherLanguage(text)) continue;\n\n const dt=dateMs(j.published);\n if(dt && now-dt>maxAge) continue;\n\n const salarySignal=parseSalarySignal(j.salary, text);\n if(salarySignal){\n   if(salarySignal.type===\"hourly\"){\n     if(p.minimum_hourly_rate && salarySignal.value < p.minimum_hourly_rate) continue;\n   } else {\n     const partTime=isPartTimeText(text);\n     const threshold=partTime ? p.minimum_salary_part_time : p.minimum_salary_full_time;\n     if(threshold && salarySignal.value < threshold) continue;\n   }\n }\n // No salary published -> do not discard, keep the listing.\n\n const canonical=String(j.url||\"\").trim();\n const id=j.id || canonical || `${j.source}|${j.company}|${title}|${j.location}`;\n out.push({json:{\n   ...j,id,title,company:j.company||\"No indicada\",location:j.location||\"No indicada\",\n   salary:j.salary||\"No indicado\",published:j.published||\"No indicada\",\n   description:String(j.description||\"\").replace(/<[^>]+>/g,\" \").replace(/\\s+/g,\" \").trim(),\n   url:canonical,matches,match_count:matches.length,remote,hybrid,work_mode\n }});\n}\nreturn out.sort((a,b)=>b.json.match_count-a.json.match_count);\n\n"
       },
       "id": "n23",
       "name": "Filtrar y normalizar",
@@ -1078,13 +988,7 @@
             "index": 0
           }
         ],
-        [
-          {
-            "node": "Indeed — generar consultas",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [],
         [
           {
             "node": "Himalayas — generar consultas",
@@ -1177,48 +1081,9 @@
         ]
       ]
     },
-    "Indeed — generar consultas": {
-      "main": [
-        [
-          {
-            "node": "Indeed — buscar HTML",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Indeed — buscar HTML": {
-      "main": [
-        [
-          {
-            "node": "Indeed — extraer",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Indeed — extraer": {
       "main": [
-        [
-          {
-            "node": "Indeed — normalizar",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Indeed — normalizar": {
-      "main": [
-        [
-          {
-            "node": "Unir fuentes",
-            "type": "main",
-            "index": 2
-          }
-        ]
+        []
       ]
     },
     "Himalayas — generar consultas": {
