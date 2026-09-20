@@ -271,7 +271,7 @@
         440
       ],
       "notesInFlow": true,
-      "notes": "Disabled by default: unofficial HTML scraping violates Indeed's ToS and breaks whenever their markup or anti-bot protection changes. Enable manually only if you accept that risk; prefer the InfoJobs/Adzuna/Arbeitnow/Himalayas/Jobicy/Remotive APIs.",
+      "notes": "Disabled: Indeed serves a Cloudflare managed challenge (captcha) on 100% of requests from this server's IP (confirmed on a real run — all 7 queries got window.INDEED_CLOUDFLARE_STATIC_PAGE captcha pages, not search results). This can't be solved with a plain HTTP request — it needs a real browser or a paid unblocking proxy. Indeed listings now come from the 'Indeed — normalizar (SerpApi)' node instead, reusing the same Google Jobs response already fetched for LinkedIn.",
       "disabled": true
     },
     {
@@ -544,7 +544,8 @@
     },
     {
       "parameters": {
-        "mode": "append"
+        "mode": "append",
+        "numberInputs": 9
       },
       "id": "n22",
       "name": "Unir fuentes",
@@ -826,7 +827,8 @@
     },
     {
       "parameters": {
-        "mode": "append"
+        "mode": "append",
+        "numberInputs": 8
       },
       "id": "n39",
       "name": "Unir fallos",
@@ -1033,6 +1035,19 @@
       "parameters": {
         "jsCode": "return [{json:{ source:\"LinkedIn (SerpApi)\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
       }
+    },
+    {
+      "id": "527edf03-467a-4ef2-b42f-97affc1c0b0a",
+      "name": "Indeed — normalizar (SerpApi)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        2790
+      ],
+      "parameters": {
+        "jsCode": "\nconst results = Array.isArray($json.jobs_results) ? $json.jobs_results : [];\nconst indeedJobs = results.filter(j => /indeed/i.test(j.via || \"\"));\n\nfunction pickUrl(j){\n  const opt = (j.apply_options || []).find(o => /indeed/i.test(o.title || \"\"));\n  return (opt && opt.link) || j.share_link || \"\";\n}\n\nreturn indeedJobs.map(j => ({json: {\n source: \"Indeed\",\n id: j.job_id || pickUrl(j) || `${j.company_name || \"\"}|${j.title || \"\"}|${j.location || \"\"}`,\n title: j.title || \"\",\n company: j.company_name || \"No indicada\",\n location: j.location || \"No indicada\",\n description: j.description || \"\",\n salary: (j.detected_extensions && j.detected_extensions.salary) || \"\",\n published: \"\",\n url: pickUrl(j)\n}}));\n"
+      }
     }
   ],
   "connections": {
@@ -1157,7 +1172,7 @@
           {
             "node": "Unir fuentes",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -1201,7 +1216,7 @@
           {
             "node": "Unir fuentes",
             "type": "main",
-            "index": 0
+            "index": 2
           }
         ]
       ]
@@ -1241,7 +1256,7 @@
           {
             "node": "Unir fuentes",
             "type": "main",
-            "index": 0
+            "index": 4
           }
         ]
       ]
@@ -1270,7 +1285,7 @@
           {
             "node": "Unir fuentes",
             "type": "main",
-            "index": 0
+            "index": 3
           }
         ]
       ]
@@ -1299,7 +1314,7 @@
           {
             "node": "Unir fuentes",
             "type": "main",
-            "index": 0
+            "index": 6
           }
         ]
       ]
@@ -1328,7 +1343,7 @@
           {
             "node": "Unir fuentes",
             "type": "main",
-            "index": 0
+            "index": 5
           }
         ]
       ]
@@ -1435,7 +1450,7 @@
           {
             "node": "Unir fallos",
             "type": "main",
-            "index": 0
+            "index": 3
           }
         ]
       ]
@@ -1446,7 +1461,7 @@
           {
             "node": "Unir fallos",
             "type": "main",
-            "index": 0
+            "index": 4
           }
         ]
       ]
@@ -1457,7 +1472,7 @@
           {
             "node": "Unir fallos",
             "type": "main",
-            "index": 0
+            "index": 5
           }
         ]
       ]
@@ -1468,7 +1483,7 @@
           {
             "node": "Unir fallos",
             "type": "main",
-            "index": 0
+            "index": 7
           }
         ]
       ]
@@ -1479,7 +1494,7 @@
           {
             "node": "Unir fallos",
             "type": "main",
-            "index": 0
+            "index": 6
           }
         ]
       ]
@@ -1490,7 +1505,7 @@
           {
             "node": "Unir fallos",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
@@ -1546,6 +1561,11 @@
             "node": "LinkedIn — normalizar",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Indeed — normalizar (SerpApi)",
+            "type": "main",
+            "index": 0
           }
         ],
         [
@@ -1563,7 +1583,7 @@
           {
             "node": "Unir fuentes",
             "type": "main",
-            "index": 0
+            "index": 7
           }
         ]
       ]
@@ -1574,7 +1594,18 @@
           {
             "node": "Unir fallos",
             "type": "main",
-            "index": 0
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Indeed — normalizar (SerpApi)": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 8
           }
         ]
       ]
