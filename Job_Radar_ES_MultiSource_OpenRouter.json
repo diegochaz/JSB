@@ -998,7 +998,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { title: $json.query, country: \"ES\", location: $json.location, limit: 20 } }}",
+        "jsonBody": "={{ { title: $json.query, country: \"es\", location: $json.location, limit: 20 } }}",
         "options": {
           "response": {
             "response": {
