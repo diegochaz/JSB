@@ -85,7 +85,7 @@
           "batching": {
             "batch": {
               "batchSize": 1,
-              "batchInterval": 1000
+              "batchInterval": 2000
             }
           }
         }
@@ -105,7 +105,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nfunction extractInitialProps(html){\n  const marker='window.__INITIAL_PROPS__ = JSON.parse(\"';\n  const start=html.indexOf(marker);\n  if(start===-1) return null;\n  let i=start+marker.length, raw='';\n  while(i<html.length){\n    const ch=html[i];\n    if(ch==='\\\\'){ raw+=ch+(html[i+1]||''); i+=2; continue; }\n    if(ch==='\"') break;\n    raw+=ch; i++;\n  }\n  try{\n    const jsonText=JSON.parse('\"'+raw+'\"');\n    return JSON.parse(jsonText);\n  }catch(e){ return null; }\n}\n\nfunction salaryText(s){\n  if(!s || !s.range) return \"\";\n  const {min,max}=s.range;\n  if(!min && !max) return \"\";\n  const cur=s.currency||\"EUR\";\n  if(min && max) return `${min}-${max} ${cur}`;\n  if(min) return `Más de ${min} ${cur}`;\n  return `Hasta ${max} ${cur}`;\n}\n\nconst html=String($json.data||\"\");\nconst state=extractInitialProps(html);\nconst offers=(state && Array.isArray(state.offers)) ? state.offers : [];\n\nreturn offers.map(j=>({json:{\n source:\"InfoJobs\",\n id:j.code||\"\",\n title:j.title||\"\",\n company:j.companyName||\"No indicada\",\n location:[j.city, \"España\", j.teleworking].filter(Boolean).join(\", \")||\"No indicada\",\n description:j.description||\"\",\n salary:salaryText(j.salary),\n published:j.publishedAt||\"\",\n url:j.link ? (\"https:\"+j.link) : \"\"\n}}));\n"
+        "jsCode": "\nfunction extractInitialProps(html){\n  const marker='window.__INITIAL_PROPS__ = JSON.parse(\"';\n  const start=html.indexOf(marker);\n  if(start===-1) return null;\n  let i=start+marker.length, raw='';\n  while(i<html.length){\n    const ch=html[i];\n    if(ch==='\\\\'){ raw+=ch+(html[i+1]||''); i+=2; continue; }\n    if(ch==='\"') break;\n    raw+=ch; i++;\n  }\n  try{\n    const jsonText=JSON.parse('\"'+raw+'\"');\n    return JSON.parse(jsonText);\n  }catch(e){ return null; }\n}\n\nfunction salaryText(s){\n  if(!s || !s.range) return \"\";\n  const {min,max}=s.range;\n  if(!min && !max) return \"\";\n  const cur=s.currency||\"EUR\";\n  if(min && max) return `${min}-${max} ${cur}`;\n  if(min) return `Más de ${min} ${cur}`;\n  return `Hasta ${max} ${cur}`;\n}\n\nconst out=[];\nfor(const item of $input.all()){\n  const html=String(item.json.data||\"\");\n  const state=extractInitialProps(html);\n  const offers=(state && Array.isArray(state.offers)) ? state.offers : [];\n  for(const j of offers){\n    out.push({json:{\n      source:\"InfoJobs\",\n      id:j.code||\"\",\n      title:j.title||\"\",\n      company:j.companyName||\"No indicada\",\n      location:[j.city, \"España\", j.teleworking].filter(Boolean).join(\", \")||\"No indicada\",\n      description:j.description||\"\",\n      salary:salaryText(j.salary),\n      published:j.publishedAt||\"\",\n      url:j.link ? (\"https:\"+j.link) : \"\"\n    }});\n  }\n}\nreturn out;\n"
       },
       "id": "n5",
       "name": "InfoJobs — normalizar",
@@ -186,7 +186,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst arr=Array.isArray($json.results)?$json.results:[];\nreturn arr.map(j=>({json:{\n source:\"Adzuna\",\n id:j.id||j.redirect_url||\"\",\n title:j.title||\"\",\n company:j.company?.display_name||\"No indicada\",\n location:j.location?.display_name||\"No indicada\",\n description:j.description||\"\",\n salary:(j.salary_min||j.salary_max)?`${j.salary_min||\"\"}-${j.salary_max||\"\"} ${j.salary_is_predicted?\"(estimado)\":\"\"}`:\"\",\n published:j.created||\"\",\n url:j.redirect_url||\"\"\n}}));\n"
+        "jsCode": "\nconst out=[];\nfor(const item of $input.all()){\n  const arr=Array.isArray(item.json.results)?item.json.results:[];\n  for(const j of arr){\n    out.push({json:{\n      source:\"Adzuna\",\n      id:j.id||j.redirect_url||\"\",\n      title:j.title||\"\",\n      company:j.company?.display_name||\"No indicada\",\n      location:j.location?.display_name||\"No indicada\",\n      description:j.description||\"\",\n      salary:(j.salary_min||j.salary_max)?`${j.salary_min||\"\"}-${j.salary_max||\"\"} ${j.salary_is_predicted?\"(estimado)\":\"\"}`:\"\",\n      published:j.created||\"\",\n      url:j.redirect_url||\"\"\n    }});\n  }\n}\nreturn out;\n"
       },
       "id": "n8",
       "name": "Adzuna — normalizar",
@@ -319,7 +319,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst x=$json, t=Array.isArray(x.titles)?x.titles:[], c=Array.isArray(x.companies)?x.companies:[], l=Array.isArray(x.locations)?x.locations:[], u=Array.isArray(x.links)?x.links:[];\nreturn t.map((title,i)=>{let url=u[i]||\"\"; if(url.startsWith(\"/\")) url=\"https://es.indeed.com\"+url; return {json:{\n source:\"Indeed\", id:url||`${c[i]||\"\"}|${title}|${l[i]||\"\"}`, title, company:c[i]||\"No indicada\",\n location:l[i]||\"No indicada\", description:\"\", salary:\"\", published:\"\", url\n}}});\n"
+        "jsCode": "\nconst out=[];\nfor(const item of $input.all()){\n  const x=item.json, t=Array.isArray(x.titles)?x.titles:[], c=Array.isArray(x.companies)?x.companies:[], l=Array.isArray(x.locations)?x.locations:[], u=Array.isArray(x.links)?x.links:[];\n  t.forEach((title,i)=>{\n    let url=u[i]||\"\"; if(url.startsWith(\"/\")) url=\"https://es.indeed.com\"+url;\n    out.push({json:{\n      source:\"Indeed\", id:url||`${c[i]||\"\"}|${title}|${l[i]||\"\"}`, title, company:c[i]||\"No indicada\",\n      location:l[i]||\"No indicada\", description:\"\", salary:\"\", published:\"\", url\n    }});\n  });\n}\nreturn out;\n"
       },
       "id": "n12",
       "name": "Indeed — normalizar",
@@ -437,7 +437,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\nconst a=Array.isArray($json.jobs)?$json.jobs:[];\nreturn a.map(j=>({json:{source:\"Himalayas\",id:j.guid||j.applicationLink||\"\",title:j.title||\"\",company:j.companyName||\"No indicada\",\nlocation:Array.isArray(j.locationRestrictions)&&j.locationRestrictions.length?j.locationRestrictions.join(\", \"):\"Remote\",\ndescription:j.description||j.excerpt||\"\",salary:(j.minSalary||j.maxSalary)?`${j.currency||\"\"} ${j.minSalary||\"?\"}-${j.maxSalary||\"?\"} ${j.salaryPeriod||\"annual\"}`:\"\",\npublished:j.pubDate||\"\",url:j.applicationLink||j.guid||\"\",attribution:\"Source: Himalayas\"}}));\n"
+        "jsCode": "\nconst out=[];\nfor(const item of $input.all()){\n  const a=Array.isArray(item.json.jobs)?item.json.jobs:[];\n  for(const j of a){\n    out.push({json:{\n      source:\"Himalayas\",id:j.guid||j.applicationLink||\"\",title:j.title||\"\",company:j.companyName||\"No indicada\",\n      location:Array.isArray(j.locationRestrictions)&&j.locationRestrictions.length?j.locationRestrictions.join(\", \"):\"Remote\",\n      description:j.description||j.excerpt||\"\",salary:(j.minSalary||j.maxSalary)?`${j.currency||\"\"} ${j.minSalary||\"?\"}-${j.maxSalary||\"?\"} ${j.salaryPeriod||\"annual\"}`:\"\",\n      published:j.pubDate||\"\",url:j.applicationLink||j.guid||\"\",attribution:\"Source: Himalayas\"\n    }});\n  }\n}\nreturn out;\n"
       },
       "id": "n17",
       "name": "Himalayas — normalizar",
@@ -946,7 +946,7 @@
         1560
       ],
       "parameters": {
-        "jsCode": "\nconst p = $('Perfil profesional').first().json.profile;\nconst qs = p.search_queries.slice(0, 18);\nreturn qs.map(q => ({json: {\n  source: \"LinkedIn\",\n  query: q,\n  location: \"España\",\n  profile: p\n}}));\n"
+        "jsCode": "\nconst p = $('Perfil profesional').first().json.profile;\nconst qs = p.search_queries.slice(0, 18);\nreturn qs.map(q => ({json: {\n  source: \"LinkedIn\",\n  query: q,\n  location: \"Spain\",\n  profile: p\n}}));\n"
       }
     },
     {
