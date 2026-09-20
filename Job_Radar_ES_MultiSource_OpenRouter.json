@@ -924,6 +924,42 @@
       ],
       "notesInFlow": true,
       "notes": "Requiere credencial de Google Sheets (OAuth2) y la variable de entorno GOOGLE_SHEET_ID (ID de la hoja de cálculo). Crea una pestaña llamada 'Ofertas' con encabezados: fecha, fuente, modalidad, titulo, empresa, ubicacion, salario, match, motivo, url — o deja que n8n la cree al mapear las columnas tras importar."
+    },
+    {
+      "parameters": {
+        "jsCode": "const order={remote:0,hybrid:1,onsite:2};\nconst items=$input.all();\nitems.sort((a,b)=>{\n  const pa=order[a.json.work_mode]??3, pb=order[b.json.work_mode]??3;\n  if(pa!==pb) return pa-pb;\n  return (b.json.score||0)-(a.json.score||0);\n});\nreturn items;"
+      },
+      "id": "n42",
+      "name": "Priorizar (match bajo)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2900,
+        700
+      ],
+      "notesInFlow": true,
+      "notes": "Mismo orden remoto>híbrido>presencial, aplicado a las ofertas que no llegaron a 70 de match, para que también las revises con prioridad."
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_CHAT_ID}}",
+        "text": "={{`${ {remote:'🏠 Remoto',hybrid:'🔀 Híbrido',onsite:'🏢 Presencial'}[$json.work_mode] || '' } 🟡 <b>Match ${$json.score}/100 — revisa tú</b>\\n\\n💼 <b>${$json.title}</b>\\n\\n🏢 <b>${$json.company}</b>\\n📍 ${$json.location}\\n💰 ${$json.salary}\\n📅 ${$json.published}\\n🌐 ${$json.source}\\n\\n📌 ${$json.reason}\\n\\n🔗 ${$json.url}`}}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "disable_web_page_preview": false
+        }
+      },
+      "id": "n43",
+      "name": "Telegram — enviar (revisar)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3140,
+        700
+      ],
+      "notesInFlow": true,
+      "notes": "Ofertas que no llegaron a 70/100 pero sí pasaron el filtro de palabras clave. Usa la misma credencial de Telegram que 'Telegram — enviar'. Decide tú si aplicar o no."
     }
   ],
   "connections": {
@@ -1295,7 +1331,13 @@
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "Priorizar (match bajo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Priorizar remoto > híbrido > presencial": {
@@ -1414,6 +1456,17 @@
         [
           {
             "node": "Telegram — alerta de fallo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Priorizar (match bajo)": {
+      "main": [
+        [
+          {
+            "node": "Telegram — enviar (revisar)",
             "type": "main",
             "index": 0
           }
