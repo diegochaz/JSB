@@ -3,21 +3,22 @@
     "Franchise Development Director",
     "Expansion Director",
     "Director de Expansión",
+    "Commercial Operations Director",
     "Business Transfers Manager",
     "Regional Operations Manager",
-    "Key Account Manager",
-    "Director de Desarrollo de Negocio"
+    "Director de Operaciones Comerciales"
   ],
   "target_roles": [
     "Franchise Development Director",
     "Expansion Director",
     "Director of Business Development",
     "Director of Operations",
+    "Commercial Operations Director",
     "Franchise Development Manager",
     "Regional Operations Manager",
-    "Key Account Manager",
     "Business Transfers Manager",
-    "Commercial Real Estate Manager"
+    "Commercial Real Estate Manager",
+    "Head of Commercial Strategy"
   ],
   "transition_roles": [
     "VP of Expansion",
@@ -25,7 +26,8 @@
     "International Expansion Director",
     "Country Manager",
     "Chief Operating Officer",
-    "Head of Franchise Development"
+    "Head of Franchise Development",
+    "VP of Commercial Operations"
   ],
   "keywords": [
     "franchise development",
@@ -48,7 +50,11 @@
     "key account management",
     "investor relations",
     "hospitality",
-    "horeca"
+    "horeca",
+    "team leadership",
+    "p&l management",
+    "operational strategy",
+    "commercial strategy"
   ],
   "exclude_keywords": [
     "software engineer",
@@ -68,7 +74,20 @@
     "camarero",
     "cocinero",
     "waiter",
-    "cook"
+    "cook",
+    "account executive",
+    "sales representative",
+    "sales development representative",
+    "business development representative",
+    "sdr",
+    "bdr",
+    "territory sales",
+    "quota carrying",
+    "outside sales",
+    "inside sales",
+    "commission only",
+    "sales engineer",
+    "sales manager"
   ],
   "locations": [
     "Málaga, España",
