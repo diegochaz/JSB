@@ -48,29 +48,17 @@
     },
     {
       "parameters": {
-        "url": "https://api.infojobs.net/api/9/offer",
+        "url": "https://www.infojobs.net/jobsearch/search-results/list.xhtml",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
             {
-              "name": "q",
+              "name": "keyword",
               "value": "={{$json.query}}"
             },
             {
-              "name": "teleworking",
-              "value": "teleworking-possible"
-            },
-            {
-              "name": "maxResults",
-              "value": "={{$json.profile.max_results_per_source_query}}"
-            },
-            {
-              "name": "order",
-              "value": "updated-desc"
-            },
-            {
-              "name": "sinceDate",
-              "value": "_7_DAYS"
+              "name": "sortBy",
+              "value": "PUBLICATION_DATE"
             }
           ]
         },
@@ -78,20 +66,20 @@
         "headerParameters": {
           "parameters": [
             {
-              "name": "Authorization",
-              "value": "={{'Basic ' + Buffer.from($env.INFOJOBS_CLIENT_ID + ':' + $env.INFOJOBS_CLIENT_SECRET).toString('base64')}}"
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9,en;q=0.8"
             },
             {
-              "name": "Accept",
-              "value": "application/json"
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/131 Safari/537.36"
             }
           ]
         },
         "options": {
           "response": {
             "response": {
-              "responseFormat": "json",
-              "neverError": false
+              "responseFormat": "text",
+              "neverError": true
             }
           },
           "batching": {
@@ -103,7 +91,7 @@
         }
       },
       "id": "n4",
-      "name": "InfoJobs API",
+      "name": "InfoJobs — buscar HTML",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -113,11 +101,11 @@
       "notesInFlow": true,
       "notes": "Deshabilitado temporalmente: el alta de nuevas apps en developer.infojobs.net está cerrada ('Register a new App' -> 'currently unavailable'). Sin INFOJOBS_CLIENT_ID/SECRET este nodo lanzaría error 401 en cada ejecución y dispararía la alerta de fallo. Actívalo (clic derecho -> Activate, o selecciona y pulsa 'D') en cuanto consigas las credenciales de InfoJobs.",
       "onError": "continueErrorOutput",
-      "disabled": true
+      "disabled": false
     },
     {
       "parameters": {
-        "jsCode": "\nconst body=$json;\nconst arr=Array.isArray(body.offers)?body.offers:[];\nreturn arr.map(j=>({json:{\n source:\"InfoJobs\",\n id:j.id||j.offerCode||\"\",\n title:j.title||j.jobTitle||\"\",\n company:j.author?.name||j.company?.name||j.companyName||\"No indicada\",\n location:[j.city?.value,j.province?.value].filter(Boolean).join(\", \")||j.locationName||\"No indicada\",\n description:j.description||j.requirements||\"\",\n salary:(j.salaryMin||j.salaryMax)?`${j.salaryMin||\"\"}-${j.salaryMax||\"\"} ${j.salaryPeriod||\"EUR\"}`:\"\",\n published:j.creationDate||j.updated||\"\",\n url:j.link||j.url||\"\"\n}}));\n"
+        "jsCode": "\nfunction extractInitialProps(html){\n  const marker='window.__INITIAL_PROPS__ = JSON.parse(\"';\n  const start=html.indexOf(marker);\n  if(start===-1) return null;\n  let i=start+marker.length, raw='';\n  while(i<html.length){\n    const ch=html[i];\n    if(ch==='\\\\'){ raw+=ch+(html[i+1]||''); i+=2; continue; }\n    if(ch==='\"') break;\n    raw+=ch; i++;\n  }\n  try{\n    const jsonText=JSON.parse('\"'+raw+'\"');\n    return JSON.parse(jsonText);\n  }catch(e){ return null; }\n}\n\nfunction salaryText(s){\n  if(!s || !s.range) return \"\";\n  const {min,max}=s.range;\n  if(!min && !max) return \"\";\n  const cur=s.currency||\"EUR\";\n  if(min && max) return `${min}-${max} ${cur}`;\n  if(min) return `Más de ${min} ${cur}`;\n  return `Hasta ${max} ${cur}`;\n}\n\nconst html=String($json.data||\"\");\nconst state=extractInitialProps(html);\nconst offers=(state && Array.isArray(state.offers)) ? state.offers : [];\n\nreturn offers.map(j=>({json:{\n source:\"InfoJobs\",\n id:j.code||\"\",\n title:j.title||\"\",\n company:j.companyName||\"No indicada\",\n location:[j.city, j.teleworking].filter(Boolean).join(\", \")||\"No indicada\",\n description:j.description||\"\",\n salary:salaryText(j.salary),\n published:j.publishedAt||\"\",\n url:j.link ? (\"https:\"+j.link) : \"\"\n}}));\n"
       },
       "id": "n5",
       "name": "InfoJobs — normalizar",
@@ -760,19 +748,6 @@
     },
     {
       "parameters": {
-        "jsCode": "return [{json:{ source:\"InfoJobs API\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
-      },
-      "id": "n32",
-      "name": "Fallo — InfoJobs API",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        740,
-        160
-      ]
-    },
-    {
-      "parameters": {
         "jsCode": "return [{json:{ source:\"Adzuna API\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
       },
       "id": "n33",
@@ -960,6 +935,104 @@
       ],
       "notesInFlow": true,
       "notes": "Ofertas que no llegaron a 70/100 pero sí pasaron el filtro de palabras clave. Usa la misma credencial de Telegram que 'Telegram — enviar'. Decide tú si aplicar o no."
+    },
+    {
+      "id": "n44",
+      "name": "LinkedIn — generar consultas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        1560
+      ],
+      "parameters": {
+        "jsCode": "\nconst p = $('Perfil profesional').first().json.profile;\nconst qs = p.search_queries.slice(0, 18);\nreturn qs.map(q => ({json: {\n  source: \"LinkedIn\",\n  query: q,\n  location: \"España\",\n  profile: p\n}}));\n"
+      }
+    },
+    {
+      "id": "n45",
+      "name": "LinkedIn (SerpApi)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        1560
+      ],
+      "notesInFlow": true,
+      "notes": "Requires SERPAPI_API_KEY environment variable. Free tier: 250 searches/month (serpapi.com/pricing). Uses Google Jobs and keeps only LinkedIn-sourced listings.",
+      "onError": "continueErrorOutput",
+      "parameters": {
+        "url": "https://serpapi.com/search.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "engine",
+              "value": "google_jobs"
+            },
+            {
+              "name": "q",
+              "value": "={{$json.query}}"
+            },
+            {
+              "name": "location",
+              "value": "={{$json.location}}"
+            },
+            {
+              "name": "hl",
+              "value": "es"
+            },
+            {
+              "name": "gl",
+              "value": "es"
+            },
+            {
+              "name": "api_key",
+              "value": "={{$env.SERPAPI_API_KEY}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json",
+              "neverError": false
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "n46",
+      "name": "LinkedIn — normalizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        1560
+      ],
+      "parameters": {
+        "jsCode": "\nconst results = Array.isArray($json.jobs_results) ? $json.jobs_results : [];\nconst linkedinJobs = results.filter(j => /linkedin/i.test(j.via || \"\"));\n\nfunction pickUrl(j){\n  const opt = (j.apply_options || []).find(o => /linkedin/i.test(o.title || \"\"));\n  return (opt && opt.link) || j.share_link || \"\";\n}\n\nreturn linkedinJobs.map(j => ({json: {\n source: \"LinkedIn\",\n id: j.job_id || pickUrl(j) || `${j.company_name || \"\"}|${j.title || \"\"}|${j.location || \"\"}`,\n title: j.title || \"\",\n company: j.company_name || \"No indicada\",\n location: j.location || \"No indicada\",\n description: j.description || \"\",\n salary: (j.detected_extensions && j.detected_extensions.salary) || \"\",\n published: \"\",\n url: pickUrl(j)\n}}));\n"
+      }
+    },
+    {
+      "id": "n47",
+      "name": "Fallo — LinkedIn (SerpApi)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        740,
+        1720
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{ source:\"LinkedIn (SerpApi)\", error: ($json.error && ($json.error.message||$json.error)) || $json.message || JSON.stringify($json).slice(0,300), time: new Date().toISOString() }}];"
+      }
     }
   ],
   "connections": {
@@ -1031,25 +1104,7 @@
       "main": [
         [
           {
-            "node": "InfoJobs API",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "InfoJobs API": {
-      "main": [
-        [
-          {
-            "node": "InfoJobs — normalizar",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Fallo — InfoJobs API",
+            "node": "InfoJobs — buscar HTML",
             "type": "main",
             "index": 0
           }
@@ -1374,17 +1429,6 @@
         ]
       ]
     },
-    "Fallo — InfoJobs API": {
-      "main": [
-        [
-          {
-            "node": "Unir fallos",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Fallo — Adzuna API": {
       "main": [
         [
@@ -1467,6 +1511,68 @@
         [
           {
             "node": "Telegram — enviar (revisar)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "InfoJobs — buscar HTML": {
+      "main": [
+        [
+          {
+            "node": "InfoJobs — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn — generar consultas": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn (SerpApi)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn (SerpApi)": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn — normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallo — LinkedIn (SerpApi)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn — normalizar": {
+      "main": [
+        [
+          {
+            "node": "Unir fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallo — LinkedIn (SerpApi)": {
+      "main": [
+        [
+          {
+            "node": "Unir fallos",
             "type": "main",
             "index": 0
           }
