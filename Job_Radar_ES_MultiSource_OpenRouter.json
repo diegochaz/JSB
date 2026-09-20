@@ -93,6 +93,12 @@
               "responseFormat": "json",
               "neverError": false
             }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
+            }
           }
         }
       },
@@ -168,6 +174,12 @@
             "response": {
               "responseFormat": "json",
               "neverError": false
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
             }
           }
         }
@@ -252,6 +264,12 @@
             "response": {
               "responseFormat": "text",
               "neverError": true
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
             }
           }
         }
@@ -409,6 +427,12 @@
             "response": {
               "responseFormat": "json",
               "neverError": false
+            }
+          },
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 1000
             }
           }
         }
